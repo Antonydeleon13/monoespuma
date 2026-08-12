@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotizador de Techos 3D | Asistente Virtual</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Three.js y OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Leaflet.js para Mapa Interactivo con Pin sin API Key -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    #canvas-container { width: 100%; height: 100%; min-height: 500px; }
+    #interactiveMap { height: 210px; width: 100%; border-radius: 0.75rem; z-index: 10; }
+    
+    /* Scrollbar estilizada */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #09090b; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 9999px; }
+    
+    /* Animación de entrada para mensajes de chat */
+    .chat-bubble {
+      animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 h-screen flex flex-col md:flex-row overflow-x-hidden selection:bg-amber-400 selection:text-zinc-950">
+
+  <!-- ================================================================= -->
+  <!-- MODAL ASISTENTE CONVERSACIONAL (LANDING CHAT) CON MAPA -->
+  <!-- ================================================================= -->
+  <div id="chatModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-xl">
+    <div class="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[700px] max-h-[92vh]">
+      
+      <!-- Encabezado del Asistente -->
+      <div class="p-4 bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-200 flex items-center justify-center text-zinc-950 font-extrabold text-lg">
+              
+            </div>
+            <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-zinc-950 rounded-full"></span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white">Asistente Mono Espuma</h2>
+            <p class="text-[11px] text-zinc-400">Espuma de Poliuretano Proyectada</p>
+          </div>
+        </div>
+        <span class="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-full font-semibold">Responde en segundos</span>
+      </div>
+
+      <!-- Ventana de Chat (Mensajes) -->
+      <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4">
+        <!-- Los mensajes dinámicos se renderizan con JavaScript -->
+      </div>
+
+      <!-- Footer / Controles del Chat -->
+      <div id="chatFooter" class="p-4 bg-zinc-950 border-t border-zinc-800/80">
+        <!-- Opciones dinámicas de respuesta -->
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- PANEL IZQUIERDO: CONTROLES DE TECHADO Y RESUMEN TÉCNICO -->
+  <!-- ================================================================= -->
+  <div class="w-full md:w-1/2 lg:w-5/12 p-6 md:p-8 overflow-y-auto bg-zinc-950/95 border-r border-zinc-800/80 shadow-2xl z-10 flex flex-col justify-between backdrop-blur-2xl">
+    <div>
+      <!-- Encabezado -->
+      <div class="border-b border-zinc-800/80 pb-5 mb-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 flex items-center justify-center text-zinc-950 font-black text-xl shadow-lg shadow-amber-500/20">
+            🏗️
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight text-white">
+              Cotizador de Techos 3D
+            </h1>
+            <p class="text-xs text-zinc-400 font-medium">Aislamiento de Espuma de Poliuretano</p>
+          </div>
+        </div>
+        <button onclick="reopenChat()" class="text-xs bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-300 px-3 py-1.5 rounded-xl transition-all">
+          💬 Editar Diagnóstico
+        </button>
+      </div>
+
+      <!-- TARJETA CONTEXTUAL: DIAGNÓSTICO Y UBICACIÓN CLIENTE -->
+      <div class="mb-5 p-4 bg-zinc-900/90 border border-zinc-800 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-zinc-500 block">Cliente</span>
+            <span id="displayNameTag" class="text-xs font-bold text-white">Por definir</span>
+          </div>
+          <span id="displayProblemTag" class="text-xs bg-amber-500/10 text-amber-300 font-bold px-2.5 py-0.5 rounded-full border border-amber-500/20">
+            🔥 Calor / Temperatura
+          </span>
+        </div>
+        <div>
+          <span class="text-[10px] uppercase font-bold text-zinc-500 block mb-0.5">Coordenadas Exactas (GPS)</span>
+          <p id="displayAddress" class="text-xs font-semibold text-zinc-200">Lat: 14.6349, Lng: -90.5069</p>
+        </div>
+        
+        <!-- Enlaces Rápidos a Mapas para Flete/Logística -->
+        <div class="pt-2 border-t border-zinc-800 flex gap-2">
+          <a id="wazeLink" href="#" target="_blank" class="flex-1 text-center text-[11px] font-bold bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/80 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5">
+            🚗 Ruta Waze
+          </a>
+          <a id="mapsLink" href="#" target="_blank" class="flex-1 text-center text-[11px] font-bold bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/80 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5">
+            📍 Google Maps
+          </a>
+        </div>
+      </div>
+
+      <!-- Configuración del Techo -->
+      <div class="space-y-4">
+        <!-- Tipo de Techo -->
+        <div>
+          <label for="roofType" class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+            Tipo de Estructura / Techo
+          </label>
+          <select id="roofType" class="w-full p-3 border border-zinc-800 rounded-xl text-zinc-100 font-semibold focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none bg-zinc-900/90 transition-all cursor-pointer">
+            <option value="domo">Tipo Domo / Bóveda (Curvo)</option>
+            <option value="plana">Plana / Losa Estándar</option>
+            <option value="dos_caidas">A 2 Caídas (A dos aguas)</option>
+            <option value="una_caida">A 1 Caída (Inclinado)</option>
+          </select>
+        </div>
+
+        <!-- Medidas Base (Entradas Numéricas) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="length" class="block text-xs font-semibold text-zinc-400 mb-1">Largo (m)</label>
+            <input type="number" id="length" value="40.0" min="0.5" step="0.5" 
+                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+          </div>
+          <div>
+            <label for="width" class="block text-xs font-semibold text-zinc-400 mb-1">Ancho (m)</label>
+            <input type="number" id="width" value="20.0" min="0.5" step="0.5" 
+                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+          </div>
+        </div>
+
+        <!-- Parámetros de Altura -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="workHeight" class="block text-xs font-semibold text-zinc-400 mb-1">Altura al Suelo (m)</label>
+            <input type="number" id="workHeight" value="30.0" min="0" step="0.5" 
+                   class="w-full p-3 border border-amber-500/30 bg-amber-500/5 rounded-xl font-bold text-amber-200 focus:ring-2 focus:ring-amber-400 outline-none transition-all">
+          </div>
+          <div>
+            <label for="thickness" class="block text-xs font-semibold text-zinc-400 mb-1">Espesor Espuma (cm)</label>
+            <input type="number" id="thickness" value="2.5" min="0.5" max="30" step="0.5" 
+                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+          </div>
+        </div>
+
+        <!-- Campo Dinámico: Flecha / Cumbrera -->
+        <div id="roofHeightContainer" class="p-4 bg-zinc-900/80 border border-zinc-800 rounded-xl">
+          <label for="roofHeight" id="roofHeightLabel" class="block text-xs font-bold text-zinc-200 mb-1">
+            Flecha / Altura del Arco (m)
+          </label>
+          <input type="number" id="roofHeight" value="10.0" min="0.1" step="0.5" 
+                 class="w-full p-3 border border-zinc-700 bg-zinc-950 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400 outline-none transition-all">
+          <p id="roofHeightHelp" class="text-[11px] text-zinc-400 mt-1.5">
+            Altura desde la base del techo hasta el punto más alto.
+          </p>
+        </div>
+
+        <!-- Tarifas y Cantidad -->
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label for="price" class="block text-xs font-semibold text-zinc-400 mb-1">Precio por m² (Q)</label>
+            <input type="number" id="price" value="175" min="0" step="5" 
+                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+          </div>
+          <div>
+            <label for="quantity" class="block text-xs font-semibold text-zinc-400 mb-1">Estructuras Iguales</label>
+            <input type="number" id="quantity" value="2" min="1" step="1" 
+                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+          </div>
+        </div>
+      </div>
+
+      <!-- Métricas Reales -->
+      <div class="mt-6 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/80 grid grid-cols-3 gap-2 text-center">
+        <div class="p-1">
+          <span class="block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Área Planta</span>
+          <span id="res-floor-area" class="text-xs md:text-sm font-extrabold text-zinc-300 mt-1 block">800.00 m²</span>
+        </div>
+        <div class="p-1 border-x border-zinc-800/80">
+          <span class="block text-[10px] font-bold tracking-wider text-amber-400 uppercase">Área Techo (m²)</span>
+          <span id="res-roof-area" class="text-xs md:text-sm font-black text-amber-300 mt-1 block">968.84 m²</span>
+        </div>
+        <div class="p-1">
+          <span class="block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Volumen Espuma</span>
+          <span id="res-volume" class="text-xs md:text-sm font-extrabold text-zinc-300 mt-1 block">24.22 m³</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desglose Final -->
+    <div class="mt-6 pt-5 border-t border-zinc-800/80">
+      <div class="flex justify-between items-center mb-1 text-xs text-zinc-400">
+        <span>Altura total máxima de trabajo:</span>
+        <span id="res-total-height" class="font-bold text-amber-300">40.00 m</span>
+      </div>
+      <div class="flex justify-between items-center mb-1 text-sm text-zinc-400">
+        <span>Precio por estructura:</span>
+        <span id="res-unit-price" class="font-bold text-zinc-200">Q169,547.84</span>
+      </div>
+      <div class="flex justify-between items-center text-xl md:text-2xl font-black text-white tracking-tight mt-2">
+        <span>Total Cotizado:</span>
+        <span id="res-total-price" class="text-amber-400">Q339,095.69</span>
+      </div>
+      
+      <button onclick="sendOfficialQuote()" 
+              class="w-full mt-4 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 text-zinc-950 font-black py-4 rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] uppercase tracking-wide text-xs">
+        Generar Cotización Oficial
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL DERECHO: VISOR 3D (THREE.JS) CON TEXTURA DE ESPUMA REAL -->
+  <div class="w-full md:w-1/2 lg:w-7/12 h-96 md:h-full relative bg-zinc-950 overflow-hidden">
+    <div class="absolute top-5 left-5 bg-zinc-900/90 backdrop-blur-md text-zinc-200 text-xs px-4 py-3 rounded-2xl z-10 border border-zinc-800/80 shadow-2xl flex flex-col gap-1.5">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-bold text-white">Motor 3D de Poliuretano Proyectado</span>
+      </div>
+      <div class="text-zinc-400 text-[11px]">🖱️ <b>Girar:</b> Clic izq + arrastrar | 🔍 <b>Zoom:</b> Rueda mouse</div>
+    </div>
+
+    <div id="canvas-container"></div>
+  </div>
+
+  <!-- FIREBASE CONFIGURATION (MODULAR SDK) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDga_Y4ftBSwCX2_vZo2TgMQTXsYcmIFzE",
+      authDomain: "monopiliuretano.firebaseapp.com",
+      projectId: "monopiliuretano",
+      storageBucket: "monopiliuretano.firebasestorage.app",
+      messagingSenderId: "928392704904",
+      appId: "1:928392704904:web:0130227ec46d33a959403d"
+    };
+
+    // Inicializar Firebase
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getFirestore(firebaseApp);
+
+    // Guardar cotización en Firebase Firestore
+    window.saveQuoteToFirebase = async function(quoteData, showAlert = true) {
+      try {
+        const docRef = await addDoc(collection(db, "cotizaciones"), quoteData);
+        if (showAlert) {
+          alert(`¡Cotización generada y guardada correctamente!\n\nCliente: ${quoteData.name}\nTeléfono: ${quoteData.phone}\nID Registro: ${docRef.id}`);
+        }
+        return docRef.id;
+      } catch (e) {
+        console.error("Error al guardar en Firebase: ", e);
+        if (showAlert) {
+          alert(`¡Cotización generada correctamente!\n\nCliente: ${quoteData.name} (${quoteData.phone})\nDiagnóstico: ${quoteData.problem}\nCoordenadas: ${quoteData.lat}, ${quoteData.lng}\nTotal: ${quoteData.totalPrice}`);
+        }
+      }
+    };
+  </script>
+
+  <!-- LÓGICA JAVASCRIPT: MAPA INTERACTIVO + CHAT + SIMULADOR 3D -->
+  <script>
+    // --- ESTADO GLOBAL CLIENTE Y COTIZADOR ---
+    const userContext = {
+      name: '',
+      phone: '',
+      problem: '',
+      lat: 14.6349,  // Guatemala por defecto
+      lng: -90.5069,
+      wazeUrl: '',
+      mapsUrl: ''
+    };
+
+    const state = {
+      roofType: 'domo',
+      length: 40.0,
+      width: 20.0,
+      workHeight: 30.0,
+      thickness: 0.025, // 2.5cm en m
+      roofHeight: 10.0,
+      priceSqM: 175,
+      quantity: 2
+    };
+
+    let leafletMap = null;
+    let mapMarker = null;
+
+    // --- LÓGICA DEL CHAT CONVERSACIONAL ---
+    const chatMessagesContainer = document.getElementById('chatMessages');
+    const chatFooter = document.getElementById('chatFooter');
+
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `flex ${sender === 'bot' ? 'justify-start' : 'justify-end'} chat-bubble`;
+      
+      const content = document.createElement('div');
+      content.className = sender === 'bot' 
+        ? 'max-w-[90%] bg-zinc-800/90 text-zinc-100 p-3.5 rounded-2xl rounded-tl-sm text-xs md:text-sm font-medium border border-zinc-700/60 shadow-lg' 
+        : 'max-w-[85%] bg-amber-400 text-zinc-950 font-bold p-3.5 rounded-2xl rounded-tr-sm text-xs md:text-sm shadow-lg';
+      content.innerHTML = text;
+      
+      msgDiv.appendChild(content);
+      chatMessagesContainer.appendChild(msgDiv);
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+
+    function startChatFlow() {
+      chatMessagesContainer.innerHTML = '';
+      
+      setTimeout(() => {
+        appendMessage('bot', '¡Hola! 👋🏽 Te damos la bienvenida. Soy tu asistente técnico para el aislamiento de cubiertas con <b>espuma de poliuretano proyectada</b>.');
+      }, 500);
+
+      setTimeout(() => {
+        appendMessage('bot', '¿Con quién tenemos el gusto de <b>hablar hoy</b>?');
+        renderNameInput();
+      }, 1800);
+    }
+
+    // PASO 1: NOMBRE
+    function renderNameInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="text" id="nameInputField" placeholder="" onkeydown="if(event.key==='Enter') submitName()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitName()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Enviar
+          </button>
+        </div>
+      `;
+      document.getElementById('nameInputField').focus();
+    }
+    
+    // 1. Función para limpiar y extraer solo el nombre real del mensaje
+    function extractCleanName(rawText) {
+  if (!rawText) return '';
+  
+  let cleaned = rawText.trim();
+
+  // Expresiones de saludo y muletillas comunes en español
+  const prefixRegex = /^(hola|buenas|buenos días|buenas tardes|buenas noches|un gusto|mucho gusto|mi nombre es|me llamo|soy|te saluda|les saluda|hablas con|por aquí|atentamente|atte\.?)[,\.\s]+/gi;
+
+  let previous = '';
+  while (cleaned !== previous) {
+    previous = cleaned;
+    cleaned = cleaned.replace(prefixRegex, '').trim();
+  }
+
+  // Pasa todo a minúsculas y solo capitaliza la letra inicial de cada palabra (soporta tildes y eñes)
+  return cleaned
+    .toLowerCase()
+    .replace(/(?:^|\s)[a-záéíóúñ]/gu, char => char.toUpperCase());
+}
+
+    // 2. Tu función submitName() actualizada
+    function submitName() {
+      const val = document.getElementById('nameInputField').value.trim();
+      if (!val) {
+        alert('Por favor ingresa tu nombre.');
+        return;
+      }
+      
+      // Extrae de forma inteligente solo el nombre (ej. "Antony de León")
+      userContext.name = extractCleanName(val);
+      
+      // Muestra la respuesta tal cual la escribió el cliente
+      appendMessage('user', `${val}`);
+
+      setTimeout(() => {
+        // El bot saluda ÚNICAMENTE usando el nombre limpio extraído
+        appendMessage('bot', `¡Un gusto saludarte, <b>${userContext.name}</b>! ¿A qué <b>número de teléfono o WhatsApp</b> podemos enviarte el reporte en PDF y darte seguimiento?`);
+        renderPhoneInput();
+      }, 1500);
+    }
+
+    // PASO 2: TELÉFONO
+    function renderPhoneInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="tel" id="phoneInputField" placeholder="" onkeydown="if(event.key==='Enter') submitPhone()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitPhone()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Enviar
+          </button>
+        </div>
+      `;
+      document.getElementById('phoneInputField').focus();
+    }
+
+    // Extractor inteligente de números de teléfono
+    function extractCleanPhone(rawText) {
+      if (!rawText) return '';
+      // Extrae únicamente los dígitos (y el signo + si aplica para códigos de país)
+      const cleaned = rawText.replace(/[^\d+]/g, '');
+      return cleaned || rawText.trim();
+    }
+
+    function submitPhone() {
+      const val = document.getElementById('phoneInputField').value.trim();
+      if (!val) {
+        alert('Por favor ingresa un número de teléfono válido.');
+        return;
+      }
+
+      // Identifica y asigna de forma inteligente solo el número limpio
+      userContext.phone = extractCleanPhone(val);
+      
+      // Muestra en el chat el texto tal como lo envió el cliente
+      appendMessage('user', `${val}`);
+
+      // Guarda inmediatamente el registro en Firebase sin interrupción
+      if (window.saveQuoteToFirebase) {
+        window.saveQuoteToFirebase({
+          name: userContext.name || 'Cliente sin nombre',
+          phone: userContext.phone,
+          estado: 'Lead registrado en Chat',
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      setTimeout(() => {
+        appendMessage('bot', 'Perfecto, gracias por la información. Ahora cuéntame: <b>¿Cuál es el problema principal que deseas amortiguar o resolver en tu techo?</b>');
+        renderProblemOptions();
+      }, 1500);
+    }
+
+    // PASO 3: DIAGNÓSTICO
+    function renderProblemOptions() {
+      chatFooter.innerHTML = `
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="selectProblem('🔥 Calor / Temperatura')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+            🔥 Calor extremo
+          </button>
+          <button onclick="selectProblem('🌧️ Goteras / Filtraciones')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+            🌧️ Goteras o filtración
+          </button>
+          <button onclick="selectProblem('❄️ Frío / Condensación')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+            ❄️ Frío o humedad
+          </button>
+          <button onclick="selectProblem('🔊 Ruido Ambiental')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+            🔊 Ruido de lluvia/ambiente
+          </button>
+        </div>
+      `;
+    }
+
+    function selectProblem(problemLabel) {
+      userContext.problem = problemLabel;
+      appendMessage('user', problemLabel);
+
+      setTimeout(() => {
+        appendMessage('bot', `Excelente. La espuma de poliuretano es perfecta para <b>${problemLabel}</b> gracias a su capa monolítica sin juntas.`);
+      }, 1000);
+
+      setTimeout(() => {
+        appendMessage('bot', '📍 <b>Marca en el mapa la ubicación exacta del proyecto</b>. Puedes mover el pin rojo o usar tu ubicación GPS actual:');
+        renderInteractiveMapUI();
+      }, 2300);
+    }
+
+    // PASO 4: MAPA GPS
+    function renderInteractiveMapUI() {
+      appendMessage('bot', `
+        <div class="space-y-2 mt-1">
+          <div id="interactiveMap"></div>
+          <div class="flex justify-between items-center text-[11px] text-zinc-400 font-semibold px-1">
+            <span>📌 Arrastra el marcador al terreno</span>
+            <span id="coordsDisplay" class="text-amber-400 font-bold">Lat: ${userContext.lat}, Lng: ${userContext.lng}</span>
+          </div>
+        </div>
+      `);
+
+      // Inicializar Leaflet Map dentro del chat
+      setTimeout(() => {
+        if (leafletMap) leafletMap.remove();
+        
+        leafletMap = L.map('interactiveMap').setView([userContext.lat, userContext.lng], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap'
+        }).addTo(leafletMap);
+
+        // Marcador arrastrable
+        mapMarker = L.marker([userContext.lat, userContext.lng], { draggable: true }).addTo(leafletMap);
+
+        mapMarker.on('dragend', function (e) {
+          const position = mapMarker.getLatLng();
+          updateCoords(position.lat, position.lng);
+        });
+
+        leafletMap.on('click', function (e) {
+          mapMarker.setLatLng(e.latlng);
+          updateCoords(e.latlng.lat, e.latlng.lng);
+        });
+
+        leafletMap.invalidateSize();
+      }, 100);
+
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <button onclick="getUserGPSLocation()" class="w-full bg-zinc-800 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-2">
+            Usar mi ubicación GPS actual
+          </button>
+          <button onclick="confirmLocationPin()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Confirmar
+          </button>
+        </div>
+      `;
+    }
+
+    function updateCoords(lat, lng) {
+      userContext.lat = typeof lat === 'number' ? lat.toFixed(5) : lat;
+      userContext.lng = typeof lng === 'number' ? lng.toFixed(5) : lng;
+      const disp = document.getElementById('coordsDisplay');
+      if (disp) disp.textContent = `Lat: ${userContext.lat}, Lng: ${userContext.lng}`;
+    }
+
+    function getUserGPSLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            updateCoords(lat, lng);
+            if (leafletMap && mapMarker) {
+              leafletMap.setView([lat, lng], 16);
+              mapMarker.setLatLng([lat, lng]);
+            }
+          },
+          () => alert('No se pudo obtener el GPS. Por favor arrastra el marcador manualmente en el mapa.')
+        );
+      }
+    }
+
+    function confirmLocationPin() {
+      userContext.wazeUrl = `https://waze.com/ul?ll=${userContext.lat},${userContext.lng}&navigate=yes`;
+      userContext.mapsUrl = `https://www.google.com/maps/search/?api=1&query=${userContext.lat},${userContext.lng}`;
+
+      appendMessage('user', `📍 Ubicación Confirmada (${userContext.lat}, ${userContext.lng})`);
+
+      setTimeout(() => {
+        appendMessage('bot', '¡Ubicación registrada con éxito! 🚀 <b>Ruta enlazada a Waze y Google Maps.</b> Pasemos al visor 3D para ajustar tus medidas.');
+      }, 1000);
+
+      setTimeout(() => {
+        closeChatModal();
+      }, 2400);
+    }
+
+    function closeChatModal() {
+      document.getElementById('chatModal').classList.add('hidden');
+      updateUserContextUI();
+    }
+
+    function reopenChat() {
+      document.getElementById('chatModal').classList.remove('hidden');
+      startChatFlow();
+    }
+
+    function updateUserContextUI() {
+      const nameEl = document.getElementById('displayNameTag');
+      if (nameEl) {
+        nameEl.textContent = userContext.name ? `${userContext.name} (${userContext.phone})` : 'Por definir';
+      }
+      document.getElementById('displayProblemTag').textContent = userContext.problem || '🔥 Calor / Temperatura';
+      document.getElementById('displayAddress').textContent = `Lat: ${userContext.lat}, Lng: ${userContext.lng}`;
+      
+      const wLink = document.getElementById('wazeLink');
+      const mLink = document.getElementById('mapsLink');
+      
+      wLink.href = userContext.wazeUrl || '#';
+      mLink.href = userContext.mapsUrl || '#';
+    }
+
+    function sendOfficialQuote() {
+      const payload = {
+        name: userContext.name || 'Cliente Anónimo',
+        phone: userContext.phone || 'Sin número',
+        problem: userContext.problem || 'No especificado',
+        lat: userContext.lat,
+        lng: userContext.lng,
+        wazeUrl: userContext.wazeUrl,
+        mapsUrl: userContext.mapsUrl,
+        roofType: state.roofType,
+        length: state.length,
+        width: state.width,
+        workHeight: state.workHeight,
+        thickness: state.thickness,
+        roofHeight: state.roofHeight,
+        priceSqM: state.priceSqM,
+        quantity: state.quantity,
+        totalPrice: displays.totalPrice.textContent,
+        createdAt: new Date().toISOString()
+      };
+
+      if (window.saveQuoteToFirebase) {
+        window.saveQuoteToFirebase(payload, true);
+      } else {
+        alert(`¡Cotización generada correctamente!\n\nCliente: ${payload.name} (${payload.phone})\nDiagnóstico: ${payload.problem}\nCoordenadas: ${payload.lat}, ${payload.lng}\nTotal: ${payload.totalPrice}`);
+      }
+    }
+
+    // --- ELEMENTOS DOM DEL SIMULADOR ---
+    const inputs = {
+      roofType: document.getElementById('roofType'),
+      length: document.getElementById('length'),
+      width: document.getElementById('width'),
+      workHeight: document.getElementById('workHeight'),
+      thickness: document.getElementById('thickness'),
+      roofHeight: document.getElementById('roofHeight'),
+      price: document.getElementById('price'),
+      quantity: document.getElementById('quantity')
+    };
+
+    const displays = {
+      floorArea: document.getElementById('res-floor-area'),
+      roofArea: document.getElementById('res-roof-area'),
+      volume: document.getElementById('res-volume'),
+      totalHeight: document.getElementById('res-total-height'),
+      unitPrice: document.getElementById('res-unit-price'),
+      totalPrice: document.getElementById('res-total-price'),
+      roofHeightContainer: document.getElementById('roofHeightContainer'),
+      roofHeightLabel: document.getElementById('roofHeightLabel')
+    };
+
+    // --- GENERADOR PROCEDIMENTAL DE TEXTURA DE ESPUMA DE POLIURETANO ---
+    function generateFoamTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#f3e8d3';
+      ctx.fillRect(0, 0, 512, 512);
+
+      const imgData = ctx.getImageData(0, 0, 512, 512);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 28;
+        data[i] = Math.min(255, Math.max(0, data[i] + noise));
+        data[i+1] = Math.min(255, Math.max(0, data[i+1] + noise));
+        data[i+2] = Math.min(255, Math.max(0, data[i+2] + noise));
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(4, 4);
+      return texture;
+    }
+
+    function generateFoamBumpMap() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#808080';
+      ctx.fillRect(0, 0, 512, 512);
+      
+      for (let i = 0; i < 3500; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const r = 1.5 + Math.random() * 5.5;
+        const gray = Math.floor(Math.random() * 255);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${gray},${gray},${gray})`;
+        ctx.fill();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(6, 6);
+      return texture;
+    }
+
+    const foamTextureMap = generateFoamTexture();
+    const foamBumpMap = generateFoamBumpMap();
+
+    // --- ESCENA THREE.JS ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x09090b);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // ILUMINACIÓN REALISTA
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
+    mainLight.position.set(40, 80, 50);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.35);
+    fillLight.position.set(-40, -20, -30);
+    scene.add(fillLight);
+
+    const gridHelper = new THREE.GridHelper(120, 60, 0xf59e0b, 0x27272a);
+    scene.add(gridHelper);
+
+    let roofGroup = new THREE.Group();
+    let dimensionGroup = new THREE.Group();
+    scene.add(roofGroup);
+    scene.add(dimensionGroup);
+
+    // ETIQUETAS DE TEXTO 3D
+    function createTextSprite(text, color = '#f5ebd6') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = 'rgba(9, 9, 11, 0.92)';
+      ctx.roundRect(10, 10, 492, 108, 18);
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = 'Bold 38px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 256, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      
+      const scaleBase = Math.max(state.length, state.width, state.workHeight) * 0.15;
+      sprite.scale.set(scaleBase * 2.2, scaleBase * 0.55, 1);
+      return sprite;
+    }
+
+    function createDimensionLine(p1, p2, color = 0xf5ebd6) {
+      const geometry = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+      const material = new THREE.LineDashedMaterial({
+        color: color,
+        dashSize: 0.8,
+        gapSize: 0.4,
+        linewidth: 2
+      });
+      const line = new THREE.Line(geometry, material);
+      line.computeLineDistances();
+      return line;
+    }
+
+    // CONSTRUCCIÓN DEL MODELO 3D Y COTAS
+    function build3DModel() {
+      while (roofGroup.children.length > 0) roofGroup.remove(roofGroup.children[0]);
+      while (dimensionGroup.children.length > 0) dimensionGroup.remove(dimensionGroup.children[0]);
+
+      const L = state.length;
+      const W = state.width;
+      const T = Math.max(state.thickness, 0.25);
+      const H = state.roofHeight;
+      const WH = state.workHeight;
+
+      const shape = new THREE.Shape();
+      let extrudeSettings = { depth: W, bevelEnabled: false };
+
+      if (state.roofType === 'plana') {
+        shape.moveTo(-L/2, 0); shape.lineTo(L/2, 0);
+        shape.lineTo(L/2, T); shape.lineTo(-L/2, T); shape.closePath();
+      } 
+      else if (state.roofType === 'dos_caidas') {
+        shape.moveTo(-L/2, 0); shape.lineTo(0, H); shape.lineTo(L/2, 0);
+        shape.lineTo(L/2, T); shape.lineTo(0, H + T); shape.lineTo(-L/2, T); shape.closePath();
+      } 
+      else if (state.roofType === 'una_caida') {
+        shape.moveTo(-L/2, 0); shape.lineTo(L/2, H);
+        shape.lineTo(L/2, H + T); shape.lineTo(-L/2, T); shape.closePath();
+      } 
+      else if (state.roofType === 'domo') {
+        const segments = 32;
+        const radius = L / 2;
+        for (let i = 0; i <= segments; i++) {
+          const theta = (Math.PI * i) / segments;
+          const x = -radius * Math.cos(theta);
+          const y = (H / radius) * radius * Math.sin(theta);
+          if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+        }
+        for (let i = segments; i >= 0; i--) {
+          const theta = (Math.PI * i) / segments;
+          const x = -radius * Math.cos(theta);
+          const y = (H / radius) * radius * Math.sin(theta) + T;
+          shape.lineTo(x, y);
+        }
+        shape.closePath();
+      }
+
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geometry.center();
+
+      const foamMaterial = new THREE.MeshStandardMaterial({
+        color: 0xf5ebd6,
+        map: foamTextureMap,
+        bumpMap: foamBumpMap,
+        bumpScale: 0.12,
+        roughness: 0.92,
+        metalness: 0.02,
+        side: THREE.DoubleSide
+      });
+
+      const foamMesh = new THREE.Mesh(geometry, foamMaterial);
+      foamMesh.castShadow = true;
+      foamMesh.receiveShadow = true;
+
+      const edges = new THREE.EdgesGeometry(geometry);
+      const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xb5a48b, linewidth: 1 }));
+      foamMesh.add(line);
+
+      const baseY = WH + (state.roofType === 'plana' ? T/2 : 0);
+      foamMesh.position.set(0, baseY, 0);
+      roofGroup.add(foamMesh);
+
+      // COTAS 3D
+      const offsetX = L / 2 + Math.max(L, W) * 0.08;
+      const offsetZ = W / 2 + Math.max(L, W) * 0.08;
+
+      // LARGO (L)
+      const lineL = createDimensionLine(new THREE.Vector3(-L/2, baseY, offsetZ), new THREE.Vector3(L/2, baseY, offsetZ), 0xf5ebd6);
+      dimensionGroup.add(lineL);
+      const spriteL = createTextSprite(`Largo: ${L.toFixed(1)} m`, '#f5ebd6');
+      spriteL.position.set(0, baseY + Math.max(L, W)*0.03, offsetZ);
+      dimensionGroup.add(spriteL);
+
+      // ANCHO (W)
+      const lineW = createDimensionLine(new THREE.Vector3(offsetX, baseY, -W/2), new THREE.Vector3(offsetX, baseY, W/2), 0xf5ebd6);
+      dimensionGroup.add(lineW);
+      const spriteW = createTextSprite(`Ancho: ${W.toFixed(1)} m`, '#f5ebd6');
+      spriteW.position.set(offsetX, baseY + Math.max(L, W)*0.03, 0);
+      dimensionGroup.add(spriteW);
+
+      // ALTURA SUELO (WH)
+      if (WH > 0) {
+        const lineWH = createDimensionLine(new THREE.Vector3(-offsetX, 0, -W/2), new THREE.Vector3(-offsetX, WH, -W/2), 0xf59e0b);
+        dimensionGroup.add(lineWH);
+        const spriteWH = createTextSprite(`Altura Suelo: ${WH.toFixed(1)} m`, '#f59e0b');
+        spriteWH.position.set(-offsetX, WH / 2, -W/2);
+        dimensionGroup.add(spriteWH);
+      }
+
+      // FLECHA / CUMBRERA
+      if (state.roofType !== 'plana') {
+        const lineH = createDimensionLine(new THREE.Vector3(0, WH, 0), new THREE.Vector3(0, WH + H, 0), 0xf5ebd6);
+        dimensionGroup.add(lineH);
+        
+        const labelName = state.roofType === 'domo' ? 'Flecha' : (state.roofType === 'dos_caidas' ? 'Cumbrera' : 'Desnivel');
+        const spriteH = createTextSprite(`${labelName}: ${H.toFixed(1)} m`, '#f5ebd6');
+        spriteH.position.set(0, WH + H / 2, 0);
+        dimensionGroup.add(spriteH);
+      }
+
+      // ESPESOR
+      const spriteT = createTextSprite(`Espesor: ${(state.thickness*100).toFixed(1)} cm`, '#f5ebd6');
+      spriteT.position.set(L/2, baseY + (state.roofType === 'plana' ? T : H + T), W/2);
+      dimensionGroup.add(spriteT);
+
+      const maxDim = Math.max(L, W, WH + H);
+      camera.position.set(maxDim * 0.95, WH + maxDim * 0.6, maxDim * 1.1);
+      controls.target.set(0, WH / 2, 0);
+      controls.update();
+    }
+
+    // --- CÁLCULOS TÉCNICOS ---
+    function updateCalculations() {
+      state.roofType = inputs.roofType.value;
+      state.length = parseFloat(inputs.length.value) || 0.1;
+      state.width = parseFloat(inputs.width.value) || 0.1;
+      state.workHeight = parseFloat(inputs.workHeight.value) || 0;
+      state.thickness = (parseFloat(inputs.thickness.value) || 0.5) / 100;
+      state.roofHeight = parseFloat(inputs.roofHeight.value) || 0.1;
+      state.priceSqM = parseFloat(inputs.price.value) || 0;
+      state.quantity = parseInt(inputs.quantity.value) || 1;
+
+      if (state.roofType === 'plana') {
+        displays.roofHeightContainer.classList.add('hidden');
+      } else {
+        displays.roofHeightContainer.classList.remove('hidden');
+        displays.roofHeightLabel.textContent = 
+          state.roofType === 'dos_caidas' ? 'Altura de Cumbrera (m)' :
+          state.roofType === 'una_caida' ? 'Desnivel / Inclinación (m)' : 'Flecha / Altura del Arco (m)';
+      }
+
+      const floorArea = state.length * state.width;
+      let realRoofArea = floorArea;
+
+      if (state.roofType === 'dos_caidas') {
+        const sideSlope = Math.sqrt(Math.pow(state.length / 2, 2) + Math.pow(state.roofHeight, 2));
+        realRoofArea = 2 * (sideSlope * state.width);
+      } else if (state.roofType === 'una_caida') {
+        const slope = Math.sqrt(Math.pow(state.length, 2) + Math.pow(state.roofHeight, 2));
+        realRoofArea = slope * state.width;
+      } else if (state.roofType === 'domo') {
+        const a = state.length / 2;
+        const b = state.roofHeight;
+        const h = Math.pow(a - b, 2) / Math.pow(a + b, 2);
+        const arcLength = Math.PI * (a + b) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h))) / 2;
+        realRoofArea = arcLength * state.width;
+      }
+
+      const volume = realRoofArea * state.thickness;
+      const unitPrice = realRoofArea * state.priceSqM;
+      const totalPrice = unitPrice * state.quantity;
+      const maxWorkHeight = state.workHeight + (state.roofType === 'plana' ? 0 : state.roofHeight);
+
+      displays.floorArea.textContent = `${floorArea.toFixed(2)} m²`;
+      displays.roofArea.textContent = `${realRoofArea.toFixed(2)} m²`;
+      displays.volume.textContent = `${volume.toFixed(2)} m³`;
+      displays.totalHeight.textContent = `${maxWorkHeight.toFixed(2)} m`;
+      displays.unitPrice.textContent = `Q${unitPrice.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      displays.totalPrice.textContent = `Q${totalPrice.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+      build3DModel();
+    }
+
+    // LISTENERS
+    Object.values(inputs).forEach(input => {
+      input.addEventListener('input', updateCalculations);
+      input.addEventListener('change', updateCalculations);
+    });
+
+    window.addEventListener('resize', () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // INICIAR CHAT Y RENDER AL CARGAR
+    startChatFlow();
+    updateCalculations();
+    animate();
+  </script>
+</body>
+</html>
