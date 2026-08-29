@@ -44,24 +44,27 @@
   <!-- MODAL ASISTENTE CONVERSACIONAL (LANDING CHAT) CON MAPA -->
   <!-- ================================================================= -->
   <div id="chatModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-xl">
-    <div class="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[700px] max-h-[92vh]">
+    <div class="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[720px] max-h-[92vh]">
       
-      <!-- Encabezado del Asistente -->
-      <div class="p-4 bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="relative">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-200 flex items-center justify-center text-zinc-950 font-extrabold text-lg">
-              
-            </div>
-            <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-zinc-950 rounded-full"></span>
-          </div>
-          <div>
-            <h2 class="text-sm font-bold text-white">Asistente Mono Espuma</h2>
-            <p class="text-[11px] text-zinc-400">Espuma de Poliuretano Proyectada</p>
-          </div>
-        </div>
-        <span class="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-full font-semibold">Responde en segundos</span>
+   <!-- Encabezado del Asistente -->
+<div class="p-4 bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <div class="relative">
+      <!-- Contenedor del Logo con fondo blanco para resaltar el logo negro -->
+      <div class="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md overflow-hidden">
+        <img src="logo.png" alt="Mono Espuma Logo" class="w-full h-full object-contain">
       </div>
+      <!-- Indicador verde de estado Online -->
+      <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-zinc-950 rounded-full z-10"></span>
+    </div>
+    <div>
+      <h2 class="text-sm font-bold text-white">Asistente Mono Espuma</h2>
+      <p class="text-[11px] text-zinc-400">Espuma de Poliuretano</p>
+    </div>
+  </div>
+  <span class="text-[10px] bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-full font-semibold">Online</span>
+</div>
+
 
       <!-- Ventana de Chat (Mensajes) -->
       <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-4">
@@ -81,157 +84,129 @@
   <!-- ================================================================= -->
   <div class="w-full md:w-1/2 lg:w-5/12 p-6 md:p-8 overflow-y-auto bg-zinc-950/95 border-r border-zinc-800/80 shadow-2xl z-10 flex flex-col justify-between backdrop-blur-2xl">
     <div>
-      <!-- Encabezado -->
-      <div class="border-b border-zinc-800/80 pb-5 mb-5 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-200 flex items-center justify-center text-zinc-950 font-black text-xl shadow-lg shadow-amber-500/20">
-            🏗️
-          </div>
-          <div>
-            <h1 class="text-xl font-extrabold tracking-tight text-white">
-              Cotizador de Techos 3D
-            </h1>
-            <p class="text-xs text-zinc-400 font-medium">Aislamiento de Espuma de Poliuretano</p>
-          </div>
-        </div>
-        <button onclick="reopenChat()" class="text-xs bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-300 px-3 py-1.5 rounded-xl transition-all">
-          💬 Editar Diagnóstico
-        </button>
-      </div>
+     <!-- Encabezado -->
+<div class="border-b border-zinc-800/80 pb-5 mb-5 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <!-- Contenedor del Logo con fondo blanco para resaltar el logo negro -->
+    <div class="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shadow-lg shadow-amber-500/10 overflow-hidden shrink-0">
+      <img src="logo.png" alt="Mono Espuma Logo" class="w-full h-full object-contain">
+    </div>
+    <div>
+      <h1 class="text-xl font-extrabold tracking-tight text-white">
+        Mono Espuma
+      </h1>
+      <p class="text-xs text-zinc-400 font-medium">Aislamiento de Espuma de Poliuretano</p>
+    </div>
+  </div>
+  <button onclick="reopenChat()" class="text-xs bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-300 px-3 py-1.5 rounded-xl transition-all">
+    Reiniciar Asistente
+  </button>
+</div>
 
-      <!-- TARJETA CONTEXTUAL: DIAGNÓSTICO Y UBICACIÓN CLIENTE -->
-      <div class="mb-5 p-4 bg-zinc-900/90 border border-zinc-800 rounded-2xl space-y-3">
-        <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
-          <div>
-            <span class="text-[10px] uppercase font-bold text-zinc-500 block">Cliente</span>
-            <span id="displayNameTag" class="text-xs font-bold text-white">Por definir</span>
-          </div>
-          <span id="displayProblemTag" class="text-xs bg-amber-500/10 text-amber-300 font-bold px-2.5 py-0.5 rounded-full border border-amber-500/20">
-            🔥 Calor / Temperatura
-          </span>
-        </div>
-        <div>
-          <span class="text-[10px] uppercase font-bold text-zinc-500 block mb-0.5">Coordenadas Exactas (GPS)</span>
-          <p id="displayAddress" class="text-xs font-semibold text-zinc-200">Lat: 14.6349, Lng: -90.5069</p>
-        </div>
-        
-        <!-- Enlaces Rápidos a Mapas para Flete/Logística -->
-        <div class="pt-2 border-t border-zinc-800 flex gap-2">
-          <a id="wazeLink" href="#" target="_blank" class="flex-1 text-center text-[11px] font-bold bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800/80 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5">
-            🚗 Ruta Waze
-          </a>
-          <a id="mapsLink" href="#" target="_blank" class="flex-1 text-center text-[11px] font-bold bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800/80 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5">
-            📍 Google Maps
-          </a>
-        </div>
-      </div>
-
-      <!-- Configuración del Techo -->
+      <!-- Configuración del Techo (Edición disponible tras cerrar chat) -->
       <div class="space-y-4">
-        <!-- Tipo de Techo -->
         <div>
           <label for="roofType" class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
             Tipo de Estructura / Techo
           </label>
           <select id="roofType" class="w-full p-3 border border-zinc-800 rounded-xl text-zinc-100 font-semibold focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none bg-zinc-900/90 transition-all cursor-pointer">
-            <option value="domo">Tipo Domo / Bóveda (Curvo)</option>
-            <option value="plana">Plana / Losa Estándar</option>
+            <option value="domo">Tipo Domo (Curvo)</option>
+            <option value="plana">Plana (Losa Estándar)</option>
             <option value="dos_caidas">A 2 Caídas (A dos aguas)</option>
             <option value="una_caida">A 1 Caída (Inclinado)</option>
           </select>
         </div>
 
-        <!-- Medidas Base (Entradas Numéricas) -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="length" class="block text-xs font-semibold text-zinc-400 mb-1">Largo (m)</label>
-            <input type="number" id="length" value="40.0" min="0.5" step="0.5" 
+            <input type="number" id="length" value="" placeholder="Ej: 40.0" min="0.5" step="0.5" 
                    class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
           </div>
           <div>
             <label for="width" class="block text-xs font-semibold text-zinc-400 mb-1">Ancho (m)</label>
-            <input type="number" id="width" value="20.0" min="0.5" step="0.5" 
+            <input type="number" id="width" value="" placeholder="Ej: 20.0" min="0.5" step="0.5" 
                    class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
           </div>
         </div>
 
-        <!-- Parámetros de Altura -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="workHeight" class="block text-xs font-semibold text-zinc-400 mb-1">Altura al Suelo (m)</label>
-            <input type="number" id="workHeight" value="30.0" min="0" step="0.5" 
+            <input type="number" id="workHeight" value="" placeholder="Ej: 30.0" min="0" step="0.5" 
                    class="w-full p-3 border border-amber-500/30 bg-amber-500/5 rounded-xl font-bold text-amber-200 focus:ring-2 focus:ring-amber-400 outline-none transition-all">
           </div>
           <div>
             <label for="thickness" class="block text-xs font-semibold text-zinc-400 mb-1">Espesor Espuma (cm)</label>
-            <input type="number" id="thickness" value="2.5" min="0.5" max="30" step="0.5" 
-                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+            <input type="number" id="thickness" value="2.5" readonly 
+                   class="w-full p-3 border border-zinc-800 bg-zinc-900/50 rounded-xl font-bold text-zinc-400 outline-none cursor-not-allowed">
           </div>
         </div>
 
-        <!-- Campo Dinámico: Flecha / Cumbrera -->
+        <!-- CAMPO DINÁMICO: FLECHA / CUMBRERA (VISIBLE CUANDO NO ES PLANO) -->
         <div id="roofHeightContainer" class="p-4 bg-zinc-900/80 border border-zinc-800 rounded-xl">
           <label for="roofHeight" id="roofHeightLabel" class="block text-xs font-bold text-zinc-200 mb-1">
             Flecha / Altura del Arco (m)
           </label>
-          <input type="number" id="roofHeight" value="10.0" min="0.1" step="0.5" 
+          <input type="number" id="roofHeight" value="" placeholder="Ej: 5.0" min="0.1" step="0.5" 
                  class="w-full p-3 border border-zinc-700 bg-zinc-950 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400 outline-none transition-all">
-          <p id="roofHeightHelp" class="text-[11px] text-zinc-400 mt-1.5">
-            Altura desde la base del techo hasta el punto más alto.
-          </p>
         </div>
 
-        <!-- Tarifas y Cantidad -->
-        <div class="grid grid-cols-2 gap-3 pt-1">
-          <div>
-            <label for="price" class="block text-xs font-semibold text-zinc-400 mb-1">Precio por m² (Q)</label>
-            <input type="number" id="price" value="175" min="0" step="5" 
-                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+        <!-- SECCIÓN OCULTA PARA CLIENTE (ADMIN) -->
+        <div class="hidden space-y-4">
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div>
+              <label for="price" class="block text-xs font-semibold text-zinc-400 mb-1">Precio por m² (Q)</label>
+              <input type="number" id="price" value="175" min="0" step="5" 
+                     class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+            </div>
+            <div>
+              <label for="quantity" class="block text-xs font-semibold text-zinc-400 mb-1">Estructuras Iguales</label>
+              <input type="number" id="quantity" value="1" min="1" step="1" 
+                     class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
+            </div>
           </div>
-          <div>
-            <label for="quantity" class="block text-xs font-semibold text-zinc-400 mb-1">Estructuras Iguales</label>
-            <input type="number" id="quantity" value="2" min="1" step="1" 
-                   class="w-full p-3 border border-zinc-800 bg-zinc-900/90 rounded-xl font-bold text-white focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 outline-none transition-all">
-          </div>
-        </div>
-      </div>
 
-      <!-- Métricas Reales -->
-      <div class="mt-6 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/80 grid grid-cols-3 gap-2 text-center">
-        <div class="p-1">
-          <span class="block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Área Planta</span>
-          <span id="res-floor-area" class="text-xs md:text-sm font-extrabold text-zinc-300 mt-1 block">800.00 m²</span>
+          <div class="mt-6 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/80 grid grid-cols-3 gap-2 text-center">
+            <div class="p-1">
+              <span class="block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Área Planta</span>
+              <span id="res-floor-area" class="text-xs md:text-sm font-extrabold text-zinc-300 mt-1 block">0.00 m²</span>
+            </div>
+            <div class="p-1 border-x border-zinc-800/80">
+              <span class="block text-[10px] font-bold tracking-wider text-amber-400 uppercase">Área Techo (m²)</span>
+              <span id="res-roof-area" class="text-xs md:text-sm font-black text-amber-300 mt-1 block">0.00 m²</span>
+            </div>
+            <div class="p-1">
+              <span class="block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Volumen Espuma</span>
+              <span id="res-volume" class="text-xs md:text-sm font-extrabold text-zinc-300 mt-1 block">0.00 m³</span>
+            </div>
+          </div>
         </div>
-        <div class="p-1 border-x border-zinc-800/80">
-          <span class="block text-[10px] font-bold tracking-wider text-amber-400 uppercase">Área Techo (m²)</span>
-          <span id="res-roof-area" class="text-xs md:text-sm font-black text-amber-300 mt-1 block">968.84 m²</span>
-        </div>
-        <div class="p-1">
-          <span class="block text-[10px] font-bold tracking-wider text-zinc-500 uppercase">Volumen Espuma</span>
-          <span id="res-volume" class="text-xs md:text-sm font-extrabold text-zinc-300 mt-1 block">24.22 m³</span>
-        </div>
+
       </div>
     </div>
 
     <!-- Desglose Final -->
-    <div class="mt-6 pt-5 border-t border-zinc-800/80">
-      <div class="flex justify-between items-center mb-1 text-xs text-zinc-400">
+    <div class="mt-6 pt-5 border-t border-zinc-800/80 space-y-2">
+      <div class="hidden flex justify-between items-center text-xs text-zinc-400">
         <span>Altura total máxima de trabajo:</span>
-        <span id="res-total-height" class="font-bold text-amber-300">40.00 m</span>
+        <span id="res-total-height" class="font-bold text-amber-300">0.00 m</span>
       </div>
-      <div class="flex justify-between items-center mb-1 text-sm text-zinc-400">
+      <div class="hidden flex justify-between items-center text-sm text-zinc-400">
         <span>Precio por estructura:</span>
-        <span id="res-unit-price" class="font-bold text-zinc-200">Q169,547.84</span>
+        <span id="res-unit-price" class="font-bold text-zinc-200">Q0.00</span>
       </div>
-      <div class="flex justify-between items-center text-xl md:text-2xl font-black text-white tracking-tight mt-2">
+      <div class="hidden flex justify-between items-center text-xl md:text-2xl font-black text-white tracking-tight mt-2">
         <span>Total Cotizado:</span>
-        <span id="res-total-price" class="text-amber-400">Q339,095.69</span>
+        <span id="res-total-price" class="text-amber-400">Q0.00</span>
       </div>
       
-      <button onclick="sendOfficialQuote()" 
-              class="w-full mt-4 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 text-zinc-950 font-black py-4 rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] uppercase tracking-wide text-xs">
-        Generar Cotización Oficial
+      <button onclick="reopenChatAndQuote()" 
+              class="w-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:brightness-110 text-zinc-950 font-black py-4 rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] uppercase tracking-wide text-xs">
+        COTIZAR
       </button>
+
+  
     </div>
   </div>
 
@@ -240,7 +215,7 @@
     <div class="absolute top-5 left-5 bg-zinc-900/90 backdrop-blur-md text-zinc-200 text-xs px-4 py-3 rounded-2xl z-10 border border-zinc-800/80 shadow-2xl flex flex-col gap-1.5">
       <div class="flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="font-bold text-white">Motor 3D de Poliuretano Proyectado</span>
+        <span class="font-bold text-white">Modelo 3D</span>
       </div>
       <div class="text-zinc-400 text-[11px]">🖱️ <b>Girar:</b> Clic izq + arrastrar | 🔍 <b>Zoom:</b> Rueda mouse</div>
     </div>
@@ -251,7 +226,7 @@
   <!-- FIREBASE CONFIGURATION (MODULAR SDK) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDga_Y4ftBSwCX2_vZo2TgMQTXsYcmIFzE",
@@ -262,55 +237,108 @@
       appId: "1:928392704904:web:0130227ec46d33a959403d"
     };
 
-    // Inicializar Firebase
     const firebaseApp = initializeApp(firebaseConfig);
     const db = getFirestore(firebaseApp);
 
-    // Guardar cotización en Firebase Firestore
-    window.saveQuoteToFirebase = async function(quoteData, showAlert = true) {
+    window.saveQuoteToFirebase = async function(quoteData, showAlert = false) {
       try {
-        const docRef = await addDoc(collection(db, "cotizaciones"), quoteData);
-        if (showAlert) {
-          alert(`¡Cotización generada y guardada correctamente!\n\nCliente: ${quoteData.name}\nTeléfono: ${quoteData.phone}\nID Registro: ${docRef.id}`);
+        if (!quoteData.docId && window.userContext && window.userContext.docId) {
+          quoteData.docId = window.userContext.docId;
         }
-        return docRef.id;
+        
+        const docRef = quoteData.docId 
+          ? doc(db, "cotizaciones", quoteData.docId)
+          : doc(collection(db, "cotizaciones"));
+
+        const finalId = docRef.id;
+        quoteData.docId = finalId;
+        if (window.userContext) {
+          window.userContext.docId = finalId;
+          localStorage.setItem('userContext', JSON.stringify(window.userContext));
+        }
+
+        await setDoc(docRef, quoteData, { merge: true });
+
+        if (showAlert) {
+          alert(`¡Cotización generada y guardada correctamente!\n\nCliente: ${quoteData.name}\nTeléfono: ${quoteData.phone}\nID Registro: ${finalId}`);
+        }
+        return finalId;
       } catch (e) {
         console.error("Error al guardar en Firebase: ", e);
-        if (showAlert) {
-          alert(`¡Cotización generada correctamente!\n\nCliente: ${quoteData.name} (${quoteData.phone})\nDiagnóstico: ${quoteData.problem}\nCoordenadas: ${quoteData.lat}, ${quoteData.lng}\nTotal: ${quoteData.totalPrice}`);
-        }
       }
     };
   </script>
 
   <!-- LÓGICA JAVASCRIPT: MAPA INTERACTIVO + CHAT + SIMULADOR 3D -->
   <script>
-    // --- ESTADO GLOBAL CLIENTE Y COTIZADOR ---
+    // Recuperación o creación de ID único persistente para la sesión actual
+    const cachedContextStr = localStorage.getItem('userContext');
+    let initialDocId = null;
+    if (cachedContextStr) {
+      try {
+        const parsed = JSON.parse(cachedContextStr);
+        initialDocId = parsed.docId || null;
+      } catch(e) {}
+    }
+    if (!initialDocId) {
+      initialDocId = 'doc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    }
+
     const userContext = {
+      docId: initialDocId,
       name: '',
       phone: '',
+      advisorCode: '',
       problem: '',
-      lat: 14.6349,  // Guatemala por defecto
+      lat: 14.6349,
       lng: -90.5069,
       wazeUrl: '',
       mapsUrl: ''
     };
+    window.userContext = userContext;
 
     const state = {
       roofType: 'domo',
-      length: 40.0,
-      width: 20.0,
-      workHeight: 30.0,
-      thickness: 0.025, // 2.5cm en m
-      roofHeight: 10.0,
+      length: 0.0,
+      width: 0.0,
+      workHeight: 0.0,
+      thickness: 0.025, // 1 pulgada = 2.5 cm en metros
+      roofHeight: 0.0,
       priceSqM: 175,
-      quantity: 2
+      quantity: 1
     };
 
     let leafletMap = null;
     let mapMarker = null;
 
-    // --- LÓGICA DEL CHAT CONVERSACIONAL ---
+    function saveContextToCache() {
+      localStorage.setItem('userContext', JSON.stringify(userContext));
+      localStorage.setItem('stateContext', JSON.stringify(state));
+    }
+
+    function loadContextFromCache() {
+      const cached = localStorage.getItem('userContext');
+      if (cached) {
+        try { 
+          const parsed = JSON.parse(cached);
+          const currentDocId = userContext.docId;
+          Object.assign(userContext, parsed);
+          if (currentDocId) userContext.docId = currentDocId; // Preservar ID actual de sesión
+        } catch(e) {}
+      }
+      const cachedState = localStorage.getItem('stateContext');
+      if (cachedState) {
+        try { Object.assign(state, JSON.parse(cachedState)); } catch(e) {}
+      }
+    }
+
+    function reopenChat() {
+      localStorage.removeItem('chatCompleted');
+      localStorage.removeItem('userContext');
+      localStorage.removeItem('stateContext');
+      location.reload();
+    }
+
     const chatMessagesContainer = document.getElementById('chatMessages');
     const chatFooter = document.getElementById('chatFooter');
 
@@ -329,24 +357,129 @@
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
 
-    function startChatFlow() {
-      chatMessagesContainer.innerHTML = '';
-      
-      setTimeout(() => {
-        appendMessage('bot', '¡Hola! 👋🏽 Te damos la bienvenida. Soy tu asistente técnico para el aislamiento de cubiertas con <b>espuma de poliuretano proyectada</b>.');
-      }, 500);
-
-      setTimeout(() => {
-        appendMessage('bot', '¿Con quién tenemos el gusto de <b>hablar hoy</b>?');
-        renderNameInput();
-      }, 1800);
+    // INDICADOR "ESCRIBIENDO..." HUMANIZADO CON PAUSA PREVIA
+    function showTypingIndicator() {
+      const id = 'typing-indicator';
+      if (document.getElementById(id)) return;
+      const msgDiv = document.createElement('div');
+      msgDiv.id = id;
+      msgDiv.className = 'flex justify-start chat-bubble';
+      msgDiv.innerHTML = `
+        <div class="bg-zinc-800/90 text-zinc-400 p-3.5 rounded-2xl rounded-tl-sm text-xs flex items-center gap-1.5 border border-zinc-700/60 shadow-lg">
+          <span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce"></span>
+          <span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+          <span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+          <span class="ml-1.5 font-semibold text-zinc-300"></span>
+        </div>
+      `;
+      chatMessagesContainer.appendChild(msgDiv);
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
 
-    // PASO 1: NOMBRE
+    function removeTypingIndicator() {
+      const el = document.getElementById('typing-indicator');
+      if (el) el.remove();
+    }
+
+  // FUNCIÓN CON ESPERA Y ESCRIBIENDO (CON AUTO-SCROLL GARANTIZADO)
+function botSayWithTyping(text, pauseBeforeTypingMs = 1000, typingDurationMs = 2000, callback) {
+  chatFooter.innerHTML = '';
+  
+  setTimeout(() => {
+    showTypingIndicator();
+    setTimeout(() => {
+      removeTypingIndicator();
+      appendMessage('bot', text);
+
+      const scrollToBottom = () => {
+        if (chatMessagesContainer) {
+          chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
+      };
+
+      scrollToBottom();
+      setTimeout(scrollToBottom, 100);
+
+      if (callback) callback();
+    }, typingDurationMs);
+  }, pauseBeforeTypingMs);
+}
+
+    // INICIO DEL CHAT
+    function startChatFlow() {
+      loadContextFromCache();
+      const isCompleted = localStorage.getItem('chatCompleted');
+
+      if (isCompleted === 'true') {
+        document.getElementById('chatModal').classList.add('hidden');
+        syncInputsWithState();
+        updateCalculations();
+        return;
+      }
+
+      chatMessagesContainer.innerHTML = '';
+      
+      botSayWithTyping('¡Hola! 👋🏽 Te damos la bienvenida. Soy tu asistente técnico para el aislamiento de cubiertas con <b>espuma de poliuretano</b>.', 500, 2000, () => {
+        botSayWithTyping('¿Con quién tenemos el gusto de <b>hablar hoy</b>?', 1000, 2000, renderNameInput);
+      });
+    }
+
+    // EXTRACTOR INTELIGENTE DE NOMBRE
+    function extractCleanName(rawText) {
+      if (!rawText) return '';
+      let text = rawText.trim().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, ' ');
+      let lower = text.toLowerCase();
+
+      const triggers = [
+        'mi nombre es ', 'me llamo ', 'soy ', 'soi ', 
+        'hablas con ', 'te saluda ', 'les saluda ', 'con '
+      ];
+
+      for (let trigger of triggers) {
+        const idx = lower.indexOf(trigger);
+        if (idx !== -1) {
+          const extracted = text.substring(idx + trigger.length).trim();
+          if (extracted.length > 0) {
+            return formatCapitalization(extracted);
+          }
+        }
+      }
+
+      const stopWords = new Set([
+        'hola', 'holas', 'ola', 'buenas', 'bueno', 'buenos', 'dias', 'días', 
+        'tardes', 'noches', 'saludos', 'que', 'qué', 'tal', 'tao',
+        'muhco', 'mucho', 'gusto', 'un', 'gracias', 'por', 'saludar', 'amigo',
+        'aqui', 'aquí', 'aca', 'acá', 'atte', 'atentamente'
+      ]);
+
+      const words = text.split(/\s+/);
+      const filteredWords = words.filter(w => !stopWords.has(w.toLowerCase()));
+
+      if (filteredWords.length > 0) {
+        return formatCapitalization(filteredWords.join(' '));
+      }
+
+      return formatCapitalization(text);
+    }
+
+    function formatCapitalization(str) {
+      const lowercaseWords = new Set(['de', 'del', 'la', 'los', 'las', 'y', 'e', 'van', 'von']);
+      return str
+        .split(/\s+/)
+        .map((word, index) => {
+          const lower = word.toLowerCase();
+          if (index > 0 && lowercaseWords.has(lower)) {
+            return lower;
+          }
+          return lower.charAt(0).toUpperCase() + lower.slice(1);
+        })
+        .join(' ');
+    }
+
     function renderNameInput() {
       chatFooter.innerHTML = `
         <div class="space-y-2">
-          <input type="text" id="nameInputField" placeholder="" onkeydown="if(event.key==='Enter') submitName()"
+          <input type="text" id="nameInputField" placeholder="Escribe tu nombre aquí..." onkeydown="if(event.key==='Enter') submitName()"
                  class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
           <button onclick="submitName()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
             Enviar
@@ -355,54 +488,42 @@
       `;
       document.getElementById('nameInputField').focus();
     }
-    
-    // 1. Función para limpiar y extraer solo el nombre real del mensaje
-    function extractCleanName(rawText) {
-  if (!rawText) return '';
-  
-  let cleaned = rawText.trim();
 
-  // Expresiones de saludo y muletillas comunes en español
-  const prefixRegex = /^(hola|buenas|buenos días|buenas tardes|buenas noches|un gusto|mucho gusto|mi nombre es|me llamo|soy|te saluda|les saluda|hablas con|por aquí|atentamente|atte\.?)[,\.\s]+/gi;
-
-  let previous = '';
-  while (cleaned !== previous) {
-    previous = cleaned;
-    cleaned = cleaned.replace(prefixRegex, '').trim();
-  }
-
-  // Pasa todo a minúsculas y solo capitaliza la letra inicial de cada palabra (soporta tildes y eñes)
-  return cleaned
-    .toLowerCase()
-    .replace(/(?:^|\s)[a-záéíóúñ]/gu, char => char.toUpperCase());
-}
-
-    // 2. Tu función submitName() actualizada
-    function submitName() {
+    async function submitName() {
       const val = document.getElementById('nameInputField').value.trim();
-      if (!val) {
-        alert('Por favor ingresa tu nombre.');
-        return;
-      }
+      if (!val) return alert('Por favor ingresa tu nombre.');
       
-      // Extrae de forma inteligente solo el nombre (ej. "Antony de León")
       userContext.name = extractCleanName(val);
-      
-      // Muestra la respuesta tal cual la escribió el cliente
+      saveContextToCache();
       appendMessage('user', `${val}`);
 
-      setTimeout(() => {
-        // El bot saluda ÚNICAMENTE usando el nombre limpio extraído
-        appendMessage('bot', `¡Un gusto saludarte, <b>${userContext.name}</b>! ¿A qué <b>número de teléfono o WhatsApp</b> podemos enviarte el reporte en PDF y darte seguimiento?`);
-        renderPhoneInput();
-      }, 1500);
+      // Sincronizar inmediatamente al admin en tiempo real
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          name: userContext.name,
+          estado: 'Escribiendo Nombre...',
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping(`¡Un gusto saludarte, <b>${userContext.name}</b>! ¿A qué <b>número de teléfono o WhatsApp</b> podemos enviarte el reporte en PDF y darte seguimiento?`, 1000, 2500, renderPhoneInput);
     }
 
-    // PASO 2: TELÉFONO
+    // EXTRACTOR INTELIGENTE DE TELÉFONO
+    function extractCleanPhone(rawText) {
+      if (!rawText) return '';
+      const matches = rawText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g);
+      if (matches && matches.length > 0) {
+        return matches[0].replace(/[^\d+]/g, '');
+      }
+      return rawText.replace(/[^\d+]/g, '') || rawText.trim();
+    }
+
     function renderPhoneInput() {
       chatFooter.innerHTML = `
         <div class="space-y-2">
-          <input type="tel" id="phoneInputField" placeholder="" onkeydown="if(event.key==='Enter') submitPhone()"
+          <input type="tel" id="phoneInputField" placeholder="Escribe tu número de teléfono..." onkeydown="if(event.key==='Enter') submitPhone()"
                  class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
           <button onclick="submitPhone()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
             Enviar
@@ -412,78 +533,117 @@
       document.getElementById('phoneInputField').focus();
     }
 
-    // Extractor inteligente de números de teléfono
-    function extractCleanPhone(rawText) {
-      if (!rawText) return '';
-      // Extrae únicamente los dígitos (y el signo + si aplica para códigos de país)
-      const cleaned = rawText.replace(/[^\d+]/g, '');
-      return cleaned || rawText.trim();
-    }
-
-    function submitPhone() {
+    async function submitPhone() {
       const val = document.getElementById('phoneInputField').value.trim();
-      if (!val) {
-        alert('Por favor ingresa un número de teléfono válido.');
-        return;
-      }
+      if (!val) return alert('Por favor ingresa un número de teléfono válido.');
 
-      // Identifica y asigna de forma inteligente solo el número limpio
       userContext.phone = extractCleanPhone(val);
-      
-      // Muestra en el chat el texto tal como lo envió el cliente
+      saveContextToCache();
       appendMessage('user', `${val}`);
 
-      // Guarda inmediatamente el registro en Firebase sin interrupción
+      // Sincronización inmediata de nombre y teléfono en el Admin
       if (window.saveQuoteToFirebase) {
-        window.saveQuoteToFirebase({
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
           name: userContext.name || 'Cliente sin nombre',
           phone: userContext.phone,
-          estado: 'Lead registrado en Chat',
+          estado: 'Lead con Teléfono',
           createdAt: new Date().toISOString()
         }, false);
       }
 
-      setTimeout(() => {
-        appendMessage('bot', 'Perfecto, gracias por la información. Ahora cuéntame: <b>¿Cuál es el problema principal que deseas amortiguar o resolver en tu techo?</b>');
-        renderProblemOptions();
-      }, 1500);
+      botSayWithTyping('Perfecto, gracias. Cuéntame: <b>¿Cuál es el problema principal que deseas resolver en tu techo?</b>', 1000, 2500, renderProblemOptions);
     }
 
-    // PASO 3: DIAGNÓSTICO
+    // PROBLEMA
     function renderProblemOptions() {
       chatFooter.innerHTML = `
         <div class="grid grid-cols-2 gap-2">
-          <button onclick="selectProblem('🔥 Calor / Temperatura')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+          <button onclick="selectProblem('Calor / Temperatura')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
             🔥 Calor extremo
           </button>
-          <button onclick="selectProblem('🌧️ Goteras / Filtraciones')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+          <button onclick="selectProblem('Goteras / Filtraciones')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
             🌧️ Goteras o filtración
           </button>
-          <button onclick="selectProblem('❄️ Frío / Condensación')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
+          <button onclick="selectProblem('Frío / Condensación')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
             ❄️ Frío o humedad
           </button>
-          <button onclick="selectProblem('🔊 Ruido Ambiental')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 hover:bg-zinc-800 text-zinc-200 font-bold text-xs rounded-xl transition-all text-left">
-            🔊 Ruido de lluvia/ambiente
+          <button onclick="selectProblem('Ruido Ambiental')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
+            🔊 Ruido ambiental
           </button>
         </div>
       `;
     }
 
-    function selectProblem(problemLabel) {
+    async function selectProblem(problemLabel) {
       userContext.problem = problemLabel;
+      saveContextToCache();
       appendMessage('user', problemLabel);
 
-      setTimeout(() => {
-        appendMessage('bot', `Excelente. La espuma de poliuretano es perfecta para <b>${problemLabel}</b> gracias a su capa monolítica sin juntas.`);
-      }, 1000);
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          name: userContext.name,
+          phone: userContext.phone,
+          problem: userContext.problem,
+          estado: 'Diagnosticando Problema',
+          createdAt: new Date().toISOString()
+        }, false);
+      }
 
-      setTimeout(() => {
-        appendMessage('bot', '📍 <b>Marca en el mapa la ubicación exacta del proyecto</b>. Puedes mover el pin rojo o usar tu ubicación GPS actual:');
-        renderInteractiveMapUI();
-      }, 2300);
+      botSayWithTyping(`Excelente. La espuma de poliuretano es perfecta para <b>${problemLabel}</b>.`, 1000, 2000, () => {
+        botSayWithTyping('¿Cuentas con algún <b>código de asesor o referido</b>? (Si no tienes uno, puedes presionar Omitir).', 1000, 2000, renderAdvisorCodeInput);
+      });
     }
 
-    // PASO 4: MAPA GPS
+    function renderAdvisorCodeInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="text" id="advisorCodeInputField" placeholder="Ej: ASESOR123 (Opcional)" onkeydown="if(event.key==='Enter') submitAdvisorCode()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400 uppercase">
+          <div class="flex gap-2">
+            <button onclick="submitAdvisorCode(true)" class="w-1/3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+              Omitir
+            </button>
+            <button onclick="submitAdvisorCode(false)" class="w-2/3 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+              Enviar
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('advisorCodeInputField').focus();
+    }
+
+    async function submitAdvisorCode(skip = false) {
+      const inputEl = document.getElementById('advisorCodeInputField');
+      const rawVal = inputEl ? inputEl.value.trim().toUpperCase() : '';
+
+      if (skip || !rawVal) {
+        userContext.advisorCode = null;
+        appendMessage('user', 'Sin código de referido');
+      } else {
+        userContext.advisorCode = rawVal;
+        appendMessage('user', `Código: ${rawVal}`);
+      }
+
+      saveContextToCache();
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          name: userContext.name,
+          phone: userContext.phone,
+          problem: userContext.problem,
+          advisorCode: userContext.advisorCode,
+          estado: 'Ubicando Proyecto',
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping('📍 <b>Marca en el mapa la ubicación exacta del proyecto</b>:', 1000, 2000, renderInteractiveMapUI);
+    }
+
+    // MAPA GPS
     function renderInteractiveMapUI() {
       appendMessage('bot', `
         <div class="space-y-2 mt-1">
@@ -495,21 +655,17 @@
         </div>
       `);
 
-      // Inicializar Leaflet Map dentro del chat
       setTimeout(() => {
         if (leafletMap) leafletMap.remove();
-        
         leafletMap = L.map('interactiveMap').setView([userContext.lat, userContext.lng], 13);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '© OpenStreetMap'
+          maxZoom: 19, attribution: '© OpenStreetMap'
         }).addTo(leafletMap);
 
-        // Marcador arrastrable
         mapMarker = L.marker([userContext.lat, userContext.lng], { draggable: true }).addTo(leafletMap);
 
-        mapMarker.on('dragend', function (e) {
+        mapMarker.on('dragend', function () {
           const position = mapMarker.getLatLng();
           updateCoords(position.lat, position.lng);
         });
@@ -524,11 +680,11 @@
 
       chatFooter.innerHTML = `
         <div class="space-y-2">
-          <button onclick="getUserGPSLocation()" class="w-full bg-zinc-800 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-2">
+          <button onclick="getUserGPSLocation()" class="w-full bg-zinc-800 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold py-2.5 rounded-xl text-xs">
             Usar mi ubicación GPS actual
           </button>
-          <button onclick="confirmLocationPin()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
-            Confirmar
+          <button onclick="confirmLocationPin()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl text-xs uppercase tracking-wide">
+            Confirmar Ubicación
           </button>
         </div>
       `;
@@ -537,6 +693,7 @@
     function updateCoords(lat, lng) {
       userContext.lat = typeof lat === 'number' ? lat.toFixed(5) : lat;
       userContext.lng = typeof lng === 'number' ? lng.toFixed(5) : lng;
+      saveContextToCache();
       const disp = document.getElementById('coordsDisplay');
       if (disp) disp.textContent = `Lat: ${userContext.lat}, Lng: ${userContext.lng}`;
     }
@@ -553,77 +710,476 @@
               mapMarker.setLatLng([lat, lng]);
             }
           },
-          () => alert('No se pudo obtener el GPS. Por favor arrastra el marcador manualmente en el mapa.')
+          () => alert('No se pudo obtener el GPS. Por favor arrastra el marcador manualmente.')
         );
       }
     }
 
-    function confirmLocationPin() {
+    async function confirmLocationPin() {
       userContext.wazeUrl = `https://waze.com/ul?ll=${userContext.lat},${userContext.lng}&navigate=yes`;
       userContext.mapsUrl = `https://www.google.com/maps/search/?api=1&query=${userContext.lat},${userContext.lng}`;
 
-      appendMessage('user', `📍 Ubicación Confirmada (${userContext.lat}, ${userContext.lng})`);
+      // Geocodificación inversa: detecta el país global exacto según el pin del mapa
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userContext.lat}&lon=${userContext.lng}&accept-language=es`);
+        const data = await response.json();
+        if (data && data.address) {
+          userContext.country = data.address.country || 'Internacional';
+          userContext.countryCode = (data.address.country_code || '').toUpperCase(); // Ej: 'cr', 'us', 'es' -> 'CR', 'US', 'ES'
+        }
+      } catch (e) {
+        console.log("No se pudo autodetectar el país por coordenadas.");
+      }
 
-      setTimeout(() => {
-        appendMessage('bot', '¡Ubicación registrada con éxito! 🚀 <b>Ruta enlazada a Waze y Google Maps.</b> Pasemos al visor 3D para ajustar tus medidas.');
-      }, 1000);
+      saveContextToCache();
+      appendMessage('user', `📍 Ubicación GPS`);
 
-      setTimeout(() => {
-        closeChatModal();
-      }, 2400);
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          name: userContext.name,
+          phone: userContext.phone,
+          lat: userContext.lat,
+          lng: userContext.lng,
+          country: userContext.country,       // Guarda el país de la ubicación del servicio
+          countryCode: userContext.countryCode, // Guarda el código ISO global
+          wazeUrl: userContext.wazeUrl,
+          mapsUrl: userContext.mapsUrl,
+          estado: 'Escribiendo Dirección',
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping('Perfecto. ¿Podrías escribirnos una dirección o referencia exacta del lugar? (Ej: <em>Km 15 ruta al Atlántico, bodega 4</em>):', 1000, 2000, renderAddressInput);
+    }
+
+function renderAddressInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="text" id="addressInputField" placeholder="Ej: Zona 4, Ciudad de Guatemala o referencia..." onkeydown="if(event.key==='Enter') submitAddress()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitAddress()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Guardar Dirección
+          </button>
+        </div>
+      `;
+      document.getElementById('addressInputField').focus();
+    }
+
+    async function submitAddress() {
+      const val = document.getElementById('addressInputField').value.trim();
+      if (!val) return alert('Por favor ingresa una dirección o referencia.');
+
+      userContext.address = val;
+      saveContextToCache();
+      appendMessage('user', val);
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          address: userContext.address,
+          estado: 'Definiendo Medidas',
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping('¡Excelente! Ahora me podrías indicar las <b>medidas de tu techo</b> para simular la estructura en 3D.', 1000, 2000, renderRoofTypeStep);
+    }
+
+    function renderRoofTypeStep() {
+      botSayWithTyping('<b>¿Qué tipo de estructura o techo tienes?</b> Selecciona una opción:', 1000, 2000, () => {
+        chatFooter.innerHTML = `
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selectRoofTypeInChat('domo', 'Domo / (Curvo)')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
+              Domo
+            </button>
+            <button onclick="selectRoofTypeInChat('plana', 'Plana / Losa')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
+              Plana / Losa
+            </button>
+            <button onclick="selectRoofTypeInChat('dos_caidas', 'A 2 Caídas (2 Aguas)')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
+              A 2 Caídas
+            </button>
+            <button onclick="selectRoofTypeInChat('una_caida', 'A 1 Caída (Inclinado)')" class="p-3 bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-zinc-200 font-bold text-xs rounded-xl text-left">
+              A 1 Caída
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    async function selectRoofTypeInChat(typeVal, typeLabel) {
+      state.roofType = typeVal;
+      saveContextToCache();
+      appendMessage('user', typeLabel);
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          roofType: state.roofType,
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping('¿Cuál es el <b>Largo (m)</b> de la estructura en metros?', 1000, 2000, renderLengthInput);
+    }
+
+    function renderLengthInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="number" id="chatLengthInput" placeholder="Ej: 40" min="0.5" step="0.5" onkeydown="if(event.key==='Enter') submitLengthInChat()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitLengthInChat()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Siguiente
+          </button>
+        </div>
+      `;
+      document.getElementById('chatLengthInput').focus();
+    }
+
+    async function submitLengthInChat() {
+      const val = parseFloat(document.getElementById('chatLengthInput').value);
+      if (!val || val <= 0) return alert('Por favor ingresa un largo válido.');
+      
+      state.length = val;
+      saveContextToCache();
+      appendMessage('user', `Largo: ${val} m`);
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          length: state.length,
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping('¿Cuál es el <b>Ancho (m)</b> de la estructura en metros?', 1000, 2000, renderWidthInput);
+    }
+
+    function renderWidthInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="number" id="chatWidthInput" placeholder="Ej: 20" min="0.5" step="0.5" onkeydown="if(event.key==='Enter') submitWidthInChat()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitWidthInChat()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Siguiente
+          </button>
+        </div>
+      `;
+      document.getElementById('chatWidthInput').focus();
+    }
+
+    async function submitWidthInChat() {
+      const val = parseFloat(document.getElementById('chatWidthInput').value);
+      if (!val || val <= 0) return alert('Por favor ingresa un ancho válido.');
+
+      state.width = val;
+      saveContextToCache();
+      appendMessage('user', `Ancho: ${val} m`);
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          width: state.width,
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      botSayWithTyping('¿Cuál es la <b>Altura al Suelo (m)</b> (distancia desde el suelo hasta la base del techo)?', 1000, 2000, renderWorkHeightInput);
+    }
+
+    function renderWorkHeightInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="number" id="chatWorkHeightInput" placeholder="Ej: 10" min="0" step="0.5" onkeydown="if(event.key==='Enter') submitWorkHeightInChat()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitWorkHeightInChat()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Siguiente
+          </button>
+        </div>
+      `;
+      document.getElementById('chatWorkHeightInput').focus();
+    }
+
+    async function submitWorkHeightInChat() {
+      const val = parseFloat(document.getElementById('chatWorkHeightInput').value);
+      if (isNaN(val) || val < 0) return alert('Por favor ingresa una altura válida.');
+
+      state.workHeight = val;
+      saveContextToCache();
+      appendMessage('user', `Altura al Suelo: ${val} m`);
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          workHeight: state.workHeight,
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      if (state.roofType === 'plana') {
+        state.roofHeight = 0;
+        startProcessingCalculations();
+      } else {
+        const labelText = state.roofType === 'domo' ? 'Flecha / Altura del Arco' : (state.roofType === 'dos_caidas' ? 'Altura de Cumbrera' : 'Desnivel / Inclinación');
+        botSayWithTyping(`¿Cuál es la <b>${labelText} (m)</b> de la estructura?`, 1000, 2000, renderRoofHeightInput);
+      }
+    }
+
+    function renderRoofHeightInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="number" id="chatRoofHeightInput" placeholder="Ej: 5" min="0.1" step="0.5" onkeydown="if(event.key==='Enter') submitRoofHeightInChat()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="submitRoofHeightInChat()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Finalizar y Calcular
+          </button>
+        </div>
+      `;
+      document.getElementById('chatRoofHeightInput').focus();
+    }
+
+    async function submitRoofHeightInChat() {
+      const val = parseFloat(document.getElementById('chatRoofHeightInput').value);
+      if (!val || val <= 0) return alert('Por favor ingresa un valor válido.');
+
+      state.roofHeight = val;
+      saveContextToCache();
+      appendMessage('user', `Altura arco/cumbrera: ${val} m`);
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase({
+          docId: userContext.docId,
+          roofHeight: state.roofHeight,
+          createdAt: new Date().toISOString()
+        }, false);
+      }
+
+      startProcessingCalculations();
+    }
+
+   // PANTALLA DE PROCESAMIENTO
+    function startProcessingCalculations() {
+      chatFooter.innerHTML = '';
+      localStorage.setItem('chatCompleted', 'true');
+
+      // 1. Primer mensaje humano inicial de trámite en curso
+      botSayWithTyping('¡Perfecto! Dame un momento por favor... estoy procesando el diseño 3D y calculando los detalles de tu área. 🛠️', 800, 1500, () => {
+        
+        // 2. Esperamos unos segundos simulando la revisión humana antes de enviar el mensaje de seguimiento
+        setTimeout(() => {
+          
+          // 3. Segundo mensaje humano de disculpa y seguimiento
+          botSayWithTyping('Lamento la demora, en breve te daré la información completa. ¡Gracias por la paciencia!', 500, 2000, async () => {
+            
+            // --- TODO TU CÓDIGO DELICADO ORIGINAL INTACTO ---
+            const canvas = document.querySelector('#canvas-container canvas');
+            const renderImage = canvas ? canvas.toDataURL('image/png') : null;
+
+            // Cálculo matemático exacto para asegurarlo al enviar a Firebase
+            const floorArea = state.length * state.width;
+            let realRoofArea = floorArea;
+            if (state.roofType === 'dos_caidas') {
+              const sideSlope = Math.sqrt(Math.pow(state.length / 2, 2) + Math.pow(state.roofHeight, 2));
+              realRoofArea = 2 * (sideSlope * state.width);
+            } else if (state.roofType === 'una_caida') {
+              const slope = Math.sqrt(Math.pow(state.length, 2) + Math.pow(state.roofHeight, 2));
+              realRoofArea = slope * state.width;
+            } else if (state.roofType === 'domo') {
+              const a = state.length / 2, b = state.roofHeight;
+              const h = Math.pow(a - b, 2) / Math.pow(a + b, 2);
+              const arcLength = Math.PI * (a + b) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h))) / 2;
+              realRoofArea = arcLength * state.width;
+            }
+
+            const fleteTotal = 250 + 500; // Cálculo base de flete
+            const unitPrice = (realRoofArea * state.priceSqM) + fleteTotal;
+            const totalPrice = unitPrice * state.quantity;
+
+            const currentArea = `${realRoofArea.toFixed(2)} m²`;
+            const currentTotal = `Q${totalPrice.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+            if (window.saveQuoteToFirebase) {
+              await window.saveQuoteToFirebase({
+                docId: userContext.docId,
+                name: userContext.name || 'Cliente',
+                phone: userContext.phone || 'Sin número',
+                advisorCode: userContext.advisorCode || null,
+                problem: userContext.problem || 'No especificado',
+                lat: userContext.lat,
+                lng: userContext.lng,
+                wazeUrl: userContext.wazeUrl,
+                mapsUrl: userContext.mapsUrl,
+                roofType: state.roofType,
+                length: state.length,
+                width: state.width,
+                workHeight: state.workHeight,
+                roofHeight: state.roofHeight,
+                areaTecho: currentArea,
+                totalPrice: currentTotal,
+                renderImage: renderImage,
+                estado: 'Cotización Activa',
+                createdAt: new Date().toISOString()
+              }, false);
+            }
+
+            // Cierre y actualización limpia de la interfaz
+            setTimeout(() => {
+              syncInputsWithState();
+              closeChatModal();
+              updateCalculations();
+            }, 800);
+            // ----------------------------------------------
+
+          });
+
+        }, 5000); // Puedes ajustar este tiempo en milisegundos (ej: 60000 para 1 min exacto)
+
+      });
+    }
+
+    function syncInputsWithState() {
+      inputs.roofType.value = state.roofType;
+      inputs.length.value = state.length;
+      inputs.width.value = state.width;
+      inputs.workHeight.value = state.workHeight;
+      inputs.thickness.value = 2.5;
+      inputs.roofHeight.value = state.roofHeight;
+      inputs.price.value = state.priceSqM;
+      inputs.quantity.value = state.quantity;
     }
 
     function closeChatModal() {
       document.getElementById('chatModal').classList.add('hidden');
-      updateUserContextUI();
     }
 
-    function reopenChat() {
-      document.getElementById('chatModal').classList.remove('hidden');
-      startChatFlow();
-    }
+    async function reopenChatAndQuote() {
+      const canvas = document.querySelector('#canvas-container canvas');
+      const renderImage = canvas ? canvas.toDataURL('image/png') : null;
 
-    function updateUserContextUI() {
-      const nameEl = document.getElementById('displayNameTag');
-      if (nameEl) {
-        nameEl.textContent = userContext.name ? `${userContext.name} (${userContext.phone})` : 'Por definir';
-      }
-      document.getElementById('displayProblemTag').textContent = userContext.problem || '🔥 Calor / Temperatura';
-      document.getElementById('displayAddress').textContent = `Lat: ${userContext.lat}, Lng: ${userContext.lng}`;
-      
-      const wLink = document.getElementById('wazeLink');
-      const mLink = document.getElementById('mapsLink');
-      
-      wLink.href = userContext.wazeUrl || '#';
-      mLink.href = userContext.mapsUrl || '#';
-    }
+      const currentArea = document.getElementById('res-roof-area')?.textContent || '0.00 m²';
+      const currentTotal = document.getElementById('res-total-price')?.textContent || 'Q0.00';
 
-    function sendOfficialQuote() {
       const payload = {
-        name: userContext.name || 'Cliente Anónimo',
-        phone: userContext.phone || 'Sin número',
+        docId: userContext.docId,
+        name: userContext.name || 'Cliente Cotización',
+        phone: userContext.phone || 'Sin teléfono',
+        advisorCode: userContext.advisorCode || null,
         problem: userContext.problem || 'No especificado',
-        lat: userContext.lat,
-        lng: userContext.lng,
-        wazeUrl: userContext.wazeUrl,
-        mapsUrl: userContext.mapsUrl,
+        lat: userContext.lat || 14.6349,
+        lng: userContext.lng || -90.5069,
+        wazeUrl: userContext.wazeUrl || `https://waze.com/ul?ll=${userContext.lat},${userContext.lng}&navigate=yes`,
+        mapsUrl: userContext.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${userContext.lat},${userContext.lng}`,
         roofType: state.roofType,
         length: state.length,
         width: state.width,
         workHeight: state.workHeight,
-        thickness: state.thickness,
         roofHeight: state.roofHeight,
-        priceSqM: state.priceSqM,
-        quantity: state.quantity,
-        totalPrice: displays.totalPrice.textContent,
+        areaTecho: currentArea,
+        totalPrice: currentTotal,
+        renderImage: renderImage,
+        estado: 'Cotización Actualizada',
         createdAt: new Date().toISOString()
       };
 
       if (window.saveQuoteToFirebase) {
-        window.saveQuoteToFirebase(payload, true);
-      } else {
-        alert(`¡Cotización generada correctamente!\n\nCliente: ${payload.name} (${payload.phone})\nDiagnóstico: ${payload.problem}\nCoordenadas: ${payload.lat}, ${payload.lng}\nTotal: ${payload.totalPrice}`);
+        await window.saveQuoteToFirebase(payload, false);
       }
+
+      document.getElementById('chatModal').classList.remove('hidden');
+      chatMessagesContainer.innerHTML = '';
+  
+      botSayWithTyping(`
+        ¡Excelente! He actualizado el render de tu techo y el cálculo logístico en el sistema.<br><br>
+        <b>¿Te gustaría que agendemos una cita?</b>
+      `, 1000, 2000, () => {
+        chatFooter.innerHTML = `
+          <button onclick="goToAdminChat()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Agendar cita
+          </button>
+        `;
+      });
+    }
+
+    function goToAdminChat() {
+      document.getElementById('chatModal').classList.remove('hidden');
+      chatMessagesContainer.innerHTML = '';
+
+      botSayWithTyping(`
+        <b>¡Perfecto!</b> Un agente se estará comunicando contigo en breve para resolver tus dudas y agendar una visita.<br><br>
+        Si necesitas dejar una nota adicional o prefieres que nos comuniquemos a otro número, ¡nos lo puedes indicar por aquí!
+      `, 500, 1500, renderLiveChatInput);
+    }
+
+    function renderLiveChatInput() {
+      chatFooter.innerHTML = `
+        <div class="space-y-2">
+          <input type="text" id="liveMessageInput" placeholder="Escribe tu mensaje para el asesor..." onkeydown="if(event.key==='Enter') sendLiveMessage()"
+                 class="w-full p-3 border border-zinc-700 bg-zinc-900 rounded-xl font-semibold text-white text-xs outline-none focus:border-amber-400">
+          <button onclick="sendLiveMessage()" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wide">
+            Enviar Mensaje
+          </button>
+        </div>
+      `;
+      setTimeout(() => {
+        const input = document.getElementById('liveMessageInput');
+        if (input) input.focus();
+      }, 100);
+    }
+
+    async function sendLiveMessage() {
+      const input = document.getElementById('liveMessageInput');
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) return;
+
+      appendMessage('user', val);
+      input.value = '';
+
+      const canvas = document.querySelector('#canvas-container canvas');
+      const renderImage = canvas ? canvas.toDataURL('image/png') : null;
+
+      const currentArea = document.getElementById('res-roof-area')?.textContent || '0.00 m²';
+      const currentTotal = document.getElementById('res-total-price')?.textContent || 'Q0.00';
+
+      const payload = {
+        docId: userContext.docId,
+        name: userContext.name || 'Cliente Chat En Vivo',
+        phone: userContext.phone || 'Sin teléfono',
+        advisorCode: userContext.advisorCode || null,
+        problem: userContext.problem || 'No especificado',
+        lat: userContext.lat || 14.6349,
+        lng: userContext.lng || -90.5069,
+        wazeUrl: userContext.wazeUrl || `https://waze.com/ul?ll=${userContext.lat},${userContext.lng}&navigate=yes`,
+        mapsUrl: userContext.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${userContext.lat},${userContext.lng}`,
+        roofType: state.roofType || 'domo',
+        length: state.length || 40.0,
+        width: state.width || 20.0,
+        workHeight: state.workHeight || 0,
+        roofHeight: state.roofHeight || 10.0,
+        areaTecho: currentArea,
+        totalPrice: currentTotal,
+        renderImage: renderImage,
+        mensajeAsesor: val,
+        estado: 'Cotización y Cita Solicitada',
+        createdAt: new Date().toISOString()
+      };
+
+      if (window.saveQuoteToFirebase) {
+        await window.saveQuoteToFirebase(payload, false);
+      }
+
+      botSayWithTyping(
+        '¡Con gusto! Hemos guardado tu cotización, el render y tu mensaje. En breve nuestro equipo se pondrá en contacto contigo. ¡Que tengas un excelente día! 🙌🏽',
+        500,
+        1500,
+        () => {
+          chatFooter.innerHTML = `
+            <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-center">
+              <p class="text-xs font-bold text-emerald-400">✓ Enviado y actualizado en el sistema</p>
+            </div>
+          `;
+        }
+      );
     }
 
     // --- ELEMENTOS DOM DEL SIMULADOR ---
@@ -649,15 +1205,11 @@
       roofHeightLabel: document.getElementById('roofHeightLabel')
     };
 
-    // --- GENERADOR PROCEDIMENTAL DE TEXTURA DE ESPUMA DE POLIURETANO ---
     function generateFoamTexture() {
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
+      canvas.width = 512; canvas.height = 512;
       const ctx = canvas.getContext('2d');
-      
-      ctx.fillStyle = '#f3e8d3';
-      ctx.fillRect(0, 0, 512, 512);
+      ctx.fillStyle = '#f3e8d3'; ctx.fillRect(0, 0, 512, 512);
 
       const imgData = ctx.getImageData(0, 0, 512, 512);
       const data = imgData.data;
@@ -670,35 +1222,51 @@
       ctx.putImageData(imgData, 0, 0);
 
       const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(4, 4);
+      texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+      
+      // CAMBIA ESTO A (1, 1)
+      texture.repeat.set(1, 1);
       return texture;
     }
 
     function generateFoamBumpMap() {
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
+      canvas.width = 512; canvas.height = 512;
       const ctx = canvas.getContext('2d');
-      
-      ctx.fillStyle = '#808080';
-      ctx.fillRect(0, 0, 512, 512);
+      ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, 512, 512);
       
       for (let i = 0; i < 3500; i++) {
-        const x = Math.random() * 512;
-        const y = Math.random() * 512;
+        const x = Math.random() * 512, y = Math.random() * 512;
         const r = 1.5 + Math.random() * 5.5;
         const gray = Math.floor(Math.random() * 255);
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgb(${gray},${gray},${gray})`;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${gray},${gray},${gray})`; ctx.fill();
       }
 
       const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
+      texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
+      
+      // CAMBIA ESTO A (1, 1) TAMBIÉN
+      texture.repeat.set(1, 1);
+      return texture;
+    }
+
+    function generateFoamBumpMap() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, 512, 512);
+      
+      for (let i = 0; i < 3500; i++) {
+        const x = Math.random() * 512, y = Math.random() * 512;
+        const r = 1.5 + Math.random() * 5.5;
+        const gray = Math.floor(Math.random() * 255);
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${gray},${gray},${gray})`; ctx.fill();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping; texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(6, 6);
       return texture;
     }
@@ -706,14 +1274,13 @@
     const foamTextureMap = generateFoamTexture();
     const foamBumpMap = generateFoamBumpMap();
 
-    // --- ESCENA THREE.JS ---
+    // ESCENA THREE.JS
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x09090b);
 
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
@@ -721,54 +1288,32 @@
     container.appendChild(renderer.domElement);
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.enableDamping = true; controls.dampingFactor = 0.05;
 
-    // ILUMINACIÓN REALISTA
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
-    scene.add(ambientLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75); scene.add(ambientLight);
+    const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.2); mainLight.position.set(40, 80, 50); mainLight.castShadow = true; scene.add(mainLight);
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.35); fillLight.position.set(-40, -20, -30); scene.add(fillLight);
 
-    const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
-    mainLight.position.set(40, 80, 50);
-    mainLight.castShadow = true;
-    scene.add(mainLight);
-
-    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.35);
-    fillLight.position.set(-40, -20, -30);
-    scene.add(fillLight);
-
-    const gridHelper = new THREE.GridHelper(120, 60, 0xf59e0b, 0x27272a);
-    scene.add(gridHelper);
+    const gridHelper = new THREE.GridHelper(120, 60, 0xf59e0b, 0x27272a); scene.add(gridHelper);
 
     let roofGroup = new THREE.Group();
     let dimensionGroup = new THREE.Group();
-    scene.add(roofGroup);
-    scene.add(dimensionGroup);
+    scene.add(roofGroup); scene.add(dimensionGroup);
 
-    // ETIQUETAS DE TEXTO 3D
     function createTextSprite(text, color = '#f5ebd6') {
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 128;
+      canvas.width = 512; canvas.height = 128;
       const ctx = canvas.getContext('2d');
-      
       ctx.fillStyle = 'rgba(9, 9, 11, 0.92)';
-      ctx.roundRect(10, 10, 492, 108, 18);
-      ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = color;
-      ctx.stroke();
-
-      ctx.fillStyle = color;
-      ctx.font = 'Bold 38px "Plus Jakarta Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.roundRect(10, 10, 492, 108, 18); ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.stroke();
+      ctx.fillStyle = color; ctx.font = 'Bold 38px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(text, 256, 64);
 
       const texture = new THREE.CanvasTexture(canvas);
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
       const sprite = new THREE.Sprite(spriteMaterial);
-      
       const scaleBase = Math.max(state.length, state.width, state.workHeight) * 0.15;
       sprite.scale.set(scaleBase * 2.2, scaleBase * 0.55, 1);
       return sprite;
@@ -776,18 +1321,11 @@
 
     function createDimensionLine(p1, p2, color = 0xf5ebd6) {
       const geometry = new THREE.BufferGeometry().setFromPoints([p1, p2]);
-      const material = new THREE.LineDashedMaterial({
-        color: color,
-        dashSize: 0.8,
-        gapSize: 0.4,
-        linewidth: 2
-      });
-      const line = new THREE.Line(geometry, material);
-      line.computeLineDistances();
+      const material = new THREE.LineDashedMaterial({ color: color, dashSize: 0.8, gapSize: 0.4, linewidth: 2 });
+      const line = new THREE.Line(geometry, material); line.computeLineDistances();
       return line;
     }
 
-    // CONSTRUCCIÓN DEL MODELO 3D Y COTAS
     function build3DModel() {
       while (roofGroup.children.length > 0) roofGroup.remove(roofGroup.children[0]);
       while (dimensionGroup.children.length > 0) dimensionGroup.remove(dimensionGroup.children[0]);
@@ -802,20 +1340,13 @@
       let extrudeSettings = { depth: W, bevelEnabled: false };
 
       if (state.roofType === 'plana') {
-        shape.moveTo(-L/2, 0); shape.lineTo(L/2, 0);
-        shape.lineTo(L/2, T); shape.lineTo(-L/2, T); shape.closePath();
-      } 
-      else if (state.roofType === 'dos_caidas') {
-        shape.moveTo(-L/2, 0); shape.lineTo(0, H); shape.lineTo(L/2, 0);
-        shape.lineTo(L/2, T); shape.lineTo(0, H + T); shape.lineTo(-L/2, T); shape.closePath();
-      } 
-      else if (state.roofType === 'una_caida') {
-        shape.moveTo(-L/2, 0); shape.lineTo(L/2, H);
-        shape.lineTo(L/2, H + T); shape.lineTo(-L/2, T); shape.closePath();
-      } 
-      else if (state.roofType === 'domo') {
-        const segments = 32;
-        const radius = L / 2;
+        shape.moveTo(-L/2, 0); shape.lineTo(L/2, 0); shape.lineTo(L/2, T); shape.lineTo(-L/2, T); shape.closePath();
+      } else if (state.roofType === 'dos_caidas') {
+        shape.moveTo(-L/2, 0); shape.lineTo(0, H); shape.lineTo(L/2, 0); shape.lineTo(L/2, T); shape.lineTo(0, H + T); shape.lineTo(-L/2, T); shape.closePath();
+      } else if (state.roofType === 'una_caida') {
+        shape.moveTo(-L/2, 0); shape.lineTo(L/2, H); shape.lineTo(L/2, H + T); shape.lineTo(-L/2, T); shape.closePath();
+      } else if (state.roofType === 'domo') {
+        const segments = 32, radius = L / 2;
         for (let i = 0; i <= segments; i++) {
           const theta = (Math.PI * i) / segments;
           const x = -radius * Math.cos(theta);
@@ -835,18 +1366,14 @@
       geometry.center();
 
       const foamMaterial = new THREE.MeshStandardMaterial({
-        color: 0xf5ebd6,
-        map: foamTextureMap,
-        bumpMap: foamBumpMap,
-        bumpScale: 0.12,
-        roughness: 0.92,
-        metalness: 0.02,
-        side: THREE.DoubleSide
-      });
+      color: 0xf5ebd6, 
+      roughness: 0.92, 
+      metalness: 0.02, 
+      side: THREE.DoubleSide
+    });
 
       const foamMesh = new THREE.Mesh(geometry, foamMaterial);
-      foamMesh.castShadow = true;
-      foamMesh.receiveShadow = true;
+      foamMesh.castShadow = true; foamMesh.receiveShadow = true;
 
       const edges = new THREE.EdgesGeometry(geometry);
       const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xb5a48b, linewidth: 1 }));
@@ -856,65 +1383,50 @@
       foamMesh.position.set(0, baseY, 0);
       roofGroup.add(foamMesh);
 
-      // COTAS 3D
       const offsetX = L / 2 + Math.max(L, W) * 0.08;
       const offsetZ = W / 2 + Math.max(L, W) * 0.08;
 
-      // LARGO (L)
-      const lineL = createDimensionLine(new THREE.Vector3(-L/2, baseY, offsetZ), new THREE.Vector3(L/2, baseY, offsetZ), 0xf5ebd6);
-      dimensionGroup.add(lineL);
-      const spriteL = createTextSprite(`Largo: ${L.toFixed(1)} m`, '#f5ebd6');
-      spriteL.position.set(0, baseY + Math.max(L, W)*0.03, offsetZ);
+      dimensionGroup.add(createDimensionLine(new THREE.Vector3(-L/2, baseY, offsetZ), new THREE.Vector3(L/2, baseY, offsetZ)));
+      const spriteL = createTextSprite(`Largo: ${L.toFixed(1)} m`); spriteL.position.set(0, baseY + Math.max(L, W)*0.03, offsetZ);
       dimensionGroup.add(spriteL);
 
-      // ANCHO (W)
-      const lineW = createDimensionLine(new THREE.Vector3(offsetX, baseY, -W/2), new THREE.Vector3(offsetX, baseY, W/2), 0xf5ebd6);
-      dimensionGroup.add(lineW);
-      const spriteW = createTextSprite(`Ancho: ${W.toFixed(1)} m`, '#f5ebd6');
-      spriteW.position.set(offsetX, baseY + Math.max(L, W)*0.03, 0);
+      dimensionGroup.add(createDimensionLine(new THREE.Vector3(offsetX, baseY, -W/2), new THREE.Vector3(offsetX, baseY, W/2)));
+      const spriteW = createTextSprite(`Ancho: ${W.toFixed(1)} m`); spriteW.position.set(offsetX, baseY + Math.max(L, W)*0.03, 0);
       dimensionGroup.add(spriteW);
 
-      // ALTURA SUELO (WH)
       if (WH > 0) {
-        const lineWH = createDimensionLine(new THREE.Vector3(-offsetX, 0, -W/2), new THREE.Vector3(-offsetX, WH, -W/2), 0xf59e0b);
-        dimensionGroup.add(lineWH);
+        dimensionGroup.add(createDimensionLine(new THREE.Vector3(-offsetX, 0, -W/2), new THREE.Vector3(-offsetX, WH, -W/2), 0xf59e0b));
         const spriteWH = createTextSprite(`Altura Suelo: ${WH.toFixed(1)} m`, '#f59e0b');
-        spriteWH.position.set(-offsetX, WH / 2, -W/2);
-        dimensionGroup.add(spriteWH);
+        spriteWH.position.set(-offsetX, WH / 2, -W/2); dimensionGroup.add(spriteWH);
       }
 
-      // FLECHA / CUMBRERA
       if (state.roofType !== 'plana') {
-        const lineH = createDimensionLine(new THREE.Vector3(0, WH, 0), new THREE.Vector3(0, WH + H, 0), 0xf5ebd6);
-        dimensionGroup.add(lineH);
-        
+        dimensionGroup.add(createDimensionLine(new THREE.Vector3(0, WH, 0), new THREE.Vector3(0, WH + H, 0)));
         const labelName = state.roofType === 'domo' ? 'Flecha' : (state.roofType === 'dos_caidas' ? 'Cumbrera' : 'Desnivel');
-        const spriteH = createTextSprite(`${labelName}: ${H.toFixed(1)} m`, '#f5ebd6');
-        spriteH.position.set(0, WH + H / 2, 0);
-        dimensionGroup.add(spriteH);
+        const spriteH = createTextSprite(`${labelName}: ${H.toFixed(1)} m`);
+        spriteH.position.set(0, WH + H / 2, 0); dimensionGroup.add(spriteH);
       }
 
-      // ESPESOR
-      const spriteT = createTextSprite(`Espesor: ${(state.thickness*100).toFixed(1)} cm`, '#f5ebd6');
+      const spriteT = createTextSprite(`Espesor: 2.5 cm`);
       spriteT.position.set(L/2, baseY + (state.roofType === 'plana' ? T : H + T), W/2);
       dimensionGroup.add(spriteT);
 
       const maxDim = Math.max(L, W, WH + H);
       camera.position.set(maxDim * 0.95, WH + maxDim * 0.6, maxDim * 1.1);
-      controls.target.set(0, WH / 2, 0);
-      controls.update();
+      controls.target.set(0, WH / 2, 0); controls.update();
     }
 
-    // --- CÁLCULOS TÉCNICOS ---
     function updateCalculations() {
       state.roofType = inputs.roofType.value;
-      state.length = parseFloat(inputs.length.value) || 0.1;
-      state.width = parseFloat(inputs.width.value) || 0.1;
+      state.length = parseFloat(inputs.length.value) || 0;
+      state.width = parseFloat(inputs.width.value) || 0;
       state.workHeight = parseFloat(inputs.workHeight.value) || 0;
-      state.thickness = (parseFloat(inputs.thickness.value) || 0.5) / 100;
+      state.thickness = 0.025;
       state.roofHeight = parseFloat(inputs.roofHeight.value) || 0.1;
-      state.priceSqM = parseFloat(inputs.price.value) || 0;
+      state.priceSqM = parseFloat(inputs.price.value) || 175;
       state.quantity = parseInt(inputs.quantity.value) || 1;
+
+      saveContextToCache();
 
       if (state.roofType === 'plana') {
         displays.roofHeightContainer.classList.add('hidden');
@@ -935,15 +1447,29 @@
         const slope = Math.sqrt(Math.pow(state.length, 2) + Math.pow(state.roofHeight, 2));
         realRoofArea = slope * state.width;
       } else if (state.roofType === 'domo') {
-        const a = state.length / 2;
-        const b = state.roofHeight;
+        const a = state.length / 2, b = state.roofHeight;
         const h = Math.pow(a - b, 2) / Math.pow(a + b, 2);
         const arcLength = Math.PI * (a + b) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h))) / 2;
         realRoofArea = arcLength * state.width;
       }
 
+      const BASE_LAT = 14.6349;
+      const BASE_LNG = -90.5069;
+
+      const R = 6371;
+      const dLat = (parseFloat(userContext.lat || BASE_LAT) - BASE_LAT) * Math.PI / 180;
+      const dLon = (parseFloat(userContext.lng || BASE_LNG) - BASE_LNG) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(BASE_LAT * Math.PI / 180) * Math.cos(parseFloat(userContext.lat || BASE_LAT) * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distanceKm = R * c;
+
+      const gasCost = Math.max(500, Math.round(distanceKm * 10));
+      const fleteTotal = 250 + gasCost;
+
       const volume = realRoofArea * state.thickness;
-      const unitPrice = realRoofArea * state.priceSqM;
+      const unitPrice = (realRoofArea * state.priceSqM) + fleteTotal;
       const totalPrice = unitPrice * state.quantity;
       const maxWorkHeight = state.workHeight + (state.roofType === 'plana' ? 0 : state.roofHeight);
 
@@ -957,18 +1483,15 @@
       build3DModel();
     }
 
-    // LISTENERS
     Object.values(inputs).forEach(input => {
       input.addEventListener('input', updateCalculations);
       input.addEventListener('change', updateCalculations);
     });
 
     window.addEventListener('resize', () => {
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      camera.aspect = w / h;
+      camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
     function animate() {
@@ -977,10 +1500,34 @@
       renderer.render(scene, camera);
     }
 
-    // INICIAR CHAT Y RENDER AL CARGAR
     startChatFlow();
-    updateCalculations();
     animate();
+
+
+    // Detectar automáticamente el país y la IP global del usuario al cargar la página
+    async function detectUserCountryByIP() {
+      try {
+        const response = await fetch('https://ipwho.is/');
+        const data = await response.json();
+        if (data && data.success) {
+          userContext.country = data.country;          // Ej: "Costa Rica", "United States", "Spain"
+          userContext.countryCode = data.alpha2_code;   // Ej: "CR", "US", "ES"
+          userContext.ip = data.ip;                     // La IP del usuario
+          
+          // Si el usuario no ha marcado el mapa manualmente, podemos usar la lat/lng de su país por IP como centro inicial
+          if (!userContext.latUserModified && data.latitude && data.longitude) {
+            userContext.lat = data.latitude;
+            userContext.lng = data.longitude;
+          }
+          saveContextToCache();
+        }
+      } catch (e) {
+        console.log("No se pudo detectar la IP automáticamente, usando valor por defecto.");
+      }
+    }
+
+    // Ejecutar esta función al cargar el script o al iniciar el chat
+    detectUserCountryByIP();
   </script>
 </body>
 </html>
