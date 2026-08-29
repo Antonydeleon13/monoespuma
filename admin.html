@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración | Solicitudes y Renders 3D</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Three.js y OrbitControls para el visor 3D interactivo -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; letter-spacing: -0.01em; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+    #admin-canvas-container { width: 100%; height: 260px; position: relative; }
+    
+    /* Efecto Glassmorphism Estilo Apple */
+    .apple-glass {
+      background: rgba(24, 24, 27, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .apple-card {
+      background: rgba(24, 24, 27, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apple-card:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-[#050507] text-zinc-100 min-h-screen flex flex-col selection:bg-amber-400 selection:text-zinc-950 pb-16">
+
+  <!-- ENCABEZADO ADMIN ESTILO APPLE -->
+  <header class="apple-glass sticky top-0 z-30 px-4 sm:px-8 py-4 flex items-center justify-between gap-4 transition-all">
+    <!-- ESPACIADOR IZQUIERDO PARA EQUILIBRAR -->
+    <div class="w-24 hidden sm:block"></div>
+
+    <!-- LOGO CENTRADO Y ELEGANTE -->
+    <div class="flex items-center justify-center mx-auto">
+      <div class="h-10 sm:h-14 flex items-center justify-center shrink-0">
+        <img src="logo2.png" alt="Mono Espuma Logo" class="h-full w-auto object-contain object-center brightness-0 invert drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]">
+      </div>
+    </div>
+
+    <!-- MÉTADATOS / CONTADORES Y ACTUALIZAR -->
+    <div class="flex items-center gap-4 sm:gap-5 shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-zinc-400 uppercase font-semibold tracking-wider leading-none">Total Pedidos</span>
+        <span id="totalCount" class="text-sm sm:text-base font-black text-amber-400 tracking-tight leading-none">0</span>
+      </div>
+      <button onclick="location.reload()" class="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+        <img src="actualizar.png" alt="Actualizar" class="w-3.5 h-3.5 object-contain inline-block brightness-0 invert opacity-75"> 
+        <span class="hidden sm:inline">Actualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+    
+    <!-- BARRA DE PESTAÑAS ESTILO APPLE PILL -->
+    <div class="apple-glass p-1.5 sm:p-2 rounded-2xl overflow-x-auto flex items-center gap-2 scrollbar-none shadow-xl">
+      <button onclick="switchTab('activos')" id="tabBtnActivos" class="px-3.5 py-2 bg-amber-400 text-zinc-950 font-extrabold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/10 shrink-0 inline-flex items-center gap-2">
+        <img src="activo.png" alt="Activos" class="w-3.5 h-3.5 object-contain inline-block">
+        <span>Activos</span>
+      </button>
+      
+      <button onclick="switchTab('finalizados')" id="tabBtnFinalizados" class="px-3.5 py-2 bg-transparent text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 inline-flex items-center gap-2">
+        <img src="check.png" alt="Finalizados" class="w-3.5 h-3.5 object-contain inline-block">
+        <span>Finalizados</span>
+      </button>
+
+      <button onclick="switchTab('rechazados')" id="tabBtnRechazados" class="px-3.5 py-2 bg-transparent text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 inline-flex items-center gap-2">
+        ❌ <span>Rechazados</span>
+      </button>
+
+      <button onclick="switchTab('estadisticas')" id="tabBtnEstadisticas" class="px-3.5 py-2 bg-transparent text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 inline-flex items-center gap-2">
+        <img src="estadistica.png" alt="Estadísticas" class="w-3.5 h-3.5 object-contain inline-block brightness-0 invert relative -top-[1px]">
+        <span class="leading-none">Estadísticas</span>
+      </button>
+
+      <button onclick="switchTab('configuracion')" id="tabBtnConfiguracion" class="px-3.5 py-2 bg-transparent text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 inline-flex items-center gap-2">
+        <img src="config.png" alt="Configuración" class="w-3.5 h-3.5 object-contain inline-block brightness-0 invert relative -top-[1px]">
+        <span class="leading-none">Configuración</span>
+      </button>
+    </div>
+
+    <!-- BUSCADOR Y EXPORTAR EXCEL -->
+    <div id="searchBarContainer" class="flex flex-col sm:flex-row items-center gap-3">
+      <div class="relative w-full flex-1">
+        <input type="text" id="globalSearchInput" oninput="filterOrders()" placeholder="Buscar por nombre, teléfono, dirección o país..." class="w-full apple-glass focus:border-amber-400/60 text-xs text-white px-4 py-3.5 rounded-2xl outline-none placeholder:text-zinc-500 transition-all shadow-inner">
+      </div>
+      <button onclick="exportToExcel()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shrink-0 shadow-lg shadow-emerald-600/25 active:scale-95">
+        <img src="exportar.png" alt="Exportar" class="w-4 h-4 object-contain inline-block brightness-0 invert"> <span>Exportar Excel</span>
+      </button>
+    </div>
+
+    <!-- ESTADO DE CARGA -->
+    <div id="loadingState" class="text-center py-24 space-y-3">
+      <div class="w-9 h-9 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      <p class="text-xs text-zinc-400 font-medium tracking-wide">Cargando solicitudes en tiempo real...</p>
+    </div>
+
+    <!-- PESTAÑA: ACTIVOS -->
+    <div id="viewActivos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 hidden"></div>
+
+    <!-- PESTAÑA: FINALIZADOS -->
+    <div id="viewFinalizados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 hidden"></div>
+
+    <!-- PESTAÑA: RECHAZADOS -->
+    <div id="viewRechazados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 hidden"></div>
+
+    <!-- PESTAÑA: ESTADÍSTICAS -->
+    <div id="viewEstadisticas" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Zonas de Alta Demanda (Dona) -->
+        <div class="apple-card p-6 rounded-3xl space-y-4 flex flex-col items-center">
+          <h3 class="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider w-full text-left">
+            📍 Demanda por Países y Regiones
+          </h3>
+          <div class="relative w-48 h-48 my-2">
+            <svg id="donutAreas" class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"></svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span id="donutTotalAreas" class="text-xl font-black text-white">0</span>
+              <span class="text-[9px] text-zinc-400 uppercase font-bold tracking-widest mt-0.5">Solicitudes</span>
+            </div>
+          </div>
+          <div id="statsAreasList" class="space-y-2 w-full max-h-44 overflow-y-auto pr-1 text-xs"></div>
+        </div>
+
+        <!-- Clientes Frecuentes (Dona) -->
+        <div class="apple-card p-6 rounded-3xl space-y-4 flex flex-col items-center">
+          <h3 class="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider w-full text-left">
+            🔁 Clientes Frecuentes (Más Cotizaciones)
+          </h3>
+          <div class="relative w-48 h-48 my-2">
+            <svg id="donutClients" class="w-full h-full transform -rotate-90" viewBox="0 0 100 100"></svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span id="donutTotalClients" class="text-xl font-black text-white">0</span>
+              <span class="text-[9px] text-zinc-400 uppercase font-bold tracking-widest mt-0.5">Cotizaciones</span>
+            </div>
+          </div>
+          <div id="statsFrequentClients" class="space-y-2 w-full max-h-44 overflow-y-auto pr-1 text-xs"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PESTAÑA: CONFIGURACIÓN -->
+    <div id="viewConfiguracion" class="space-y-6 hidden max-w-2xl mx-auto w-full">
+      <div class="apple-card rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">Configuración del Sistema</h2>
+          <p class="text-xs text-zinc-400 mt-0.5">Administra asesores, tarifas de hotel y tipo de moneda global.</p>
+        </div>
+
+        <div class="space-y-3 bg-zinc-950/50 p-5 border border-white/5 rounded-2xl backdrop-blur-md">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">Tarifas de Hotel, Gasolina y Moneda Global</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1 font-medium">Hotel 1 Persona</label>
+              <input type="number" id="configHotel1" value="225" onchange="saveGlobalConfig()" class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-all">
+            </div>
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1 font-medium">Hotel 2 Pers. (c/u)</label>
+              <input type="number" id="configHotel2" value="215" onchange="saveGlobalConfig()" class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-all">
+            </div>
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1 font-medium">Precio x Km (Gas)</label>
+              <input type="number" step="0.5" id="configGasRate" value="10" onchange="saveGlobalConfig()" class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-amber-300 font-bold outline-none focus:border-amber-400 transition-all">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1 font-medium">Símbolo de Moneda</label>
+              <select id="configCurrency" onchange="saveGlobalConfig()" class="w-full p-3 bg-zinc-900/80 border border-zinc-800 text-amber-300 font-bold text-xs rounded-xl outline-none transition-all">
+                <option value="Q">Quetzales (Q)</option>
+                <option value="$">Dólares ($)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] text-zinc-400 block mb-1 font-medium">Tipo de Cambio ($ a Q)</label>
+              <input type="number" step="0.01" id="configExchangeRate" value="7.80" onchange="saveGlobalConfig()" class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-amber-300 font-bold outline-none focus:border-amber-400 transition-all">
+            </div>
+          </div>
+        </div>
+
+        <form id="advisorForm" onsubmit="saveAdvisor(event)" class="space-y-3 bg-zinc-950/50 p-5 border border-white/5 rounded-2xl backdrop-blur-md">
+          <div class="flex justify-between items-center">
+            <span id="formTitle" class="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">Registrar Nuevo Asesor</span>
+            <button type="button" id="btnCancelEdit" onclick="resetAdvisorForm()" class="text-[10px] text-zinc-400 hover:text-white hidden uppercase font-bold tracking-wider">Cancelar Edición</button>
+          </div>
+          <div class="space-y-2.5">
+            <input type="text" id="advName" placeholder="Nombre completo del empleado" required class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-all">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <input type="tel" id="advPhone" placeholder="Teléfono / WhatsApp" required class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-all">
+              <input type="text" id="advCode" placeholder="Código (Ej: ASESOR123)" required class="w-full p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl text-xs text-amber-300 font-bold uppercase outline-none focus:border-amber-400 transition-all">
+            </div>
+          </div>
+          <button type="submit" id="btnSaveAdvisor" class="w-full bg-amber-400 hover:bg-amber-300 text-zinc-950 font-black py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg shadow-amber-400/20 active:scale-95">
+            Guardar Asesor
+          </button>
+        </form>
+
+        <div class="space-y-2.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 px-1">Asesores Activos</span>
+          <div id="advisorsList" class="max-h-48 overflow-y-auto space-y-2 pr-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ESTADO VACÍO GENERAL -->
+    <div id="emptyState" class="hidden text-center py-24 space-y-3">
+      <h3 class="text-base font-bold text-zinc-300">No hay cotizaciones registradas</h3>
+      <p class="text-xs text-zinc-500">Los nuevos clientes que envíen cotizaciones aparecerán aquí automáticamente.</p>
+    </div>
+
+  </main>
+
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
+  <div id="confirmModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+    <div class="apple-card rounded-3xl max-w-sm w-full p-6 space-y-5 shadow-2xl text-center border border-white/10">
+      <div>
+        <h3 id="confirmTitle" class="text-base font-bold text-white tracking-tight">¿Eliminar Registro?</h3>
+        <p id="confirmMessage" class="text-xs text-zinc-400 mt-1">Esta acción es irreversible.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 pt-1">
+        <button onclick="closeConfirmModal(false)" class="p-3 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl text-xs uppercase tracking-wider transition-all">Cancelar</button>
+        <button id="btnConfirmAction" onclick="closeConfirmModal(true)" class="p-3 bg-red-500 hover:bg-red-400 text-zinc-950 font-black rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-red-500/20">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALLE COMPLETO Y VISOR 3D INTERACTIVO -->
+  <div id="detailModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-5 hidden">
+    <div class="apple-card rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 space-y-5 shadow-2xl relative border border-white/10">
+      
+      <button onclick="closeModal()" class="absolute top-5 right-5 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 w-8 h-8 rounded-full font-bold text-sm transition-all flex items-center justify-center z-20 shadow-md">✕</button>
+
+      <div class="flex flex-wrap items-start justify-between gap-3 pr-8">
+        <div>
+          <span id="modalEstadoBadge" class="inline-block px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold rounded-full uppercase tracking-wider mb-2">Activo</span>
+          <h2 id="modalName" class="text-xl sm:text-2xl font-black text-white tracking-tight">Nombre Cliente</h2>
+          <p id="modalDate" class="text-xs text-zinc-400 font-medium mt-0.5">Fecha</p>
+        </div>
+
+        <div id="modalAdvisorCard" class="bg-zinc-950/70 border border-white/5 p-3.5 rounded-2xl flex items-center gap-3 w-full sm:w-auto backdrop-blur-md">
+          <div>
+            <span class="block text-[9px] uppercase font-bold text-zinc-400 tracking-wider">Asesor Referente</span>
+            <span id="modalAdvisorName" class="text-xs font-bold text-amber-300 block mt-0.5">--</span>
+            <span id="modalAdvisorPhone" class="text-[10px] text-zinc-400 font-mono block">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-zinc-950 border border-white/5 rounded-2xl overflow-hidden relative group shadow-inner">
+        <span class="absolute top-3 left-3 bg-zinc-900/90 border border-white/10 text-[10px] text-amber-400 font-bold px-3 py-1 rounded-full backdrop-blur-md z-10 pointer-events-none">3D Interactivo</span>
+        <div id="admin-canvas-container"></div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="bg-zinc-950/50 p-4 border border-white/5 rounded-2xl space-y-2.5 backdrop-blur-md">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Contacto</span>
+          <p id="modalPhone" class="text-sm font-bold text-white">Teléfono</p>
+          <p id="modalProblem" class="text-xs text-amber-300 font-semibold">Problema: --</p>
+          <a id="btnWhatsApp" href="#" target="_blank" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs px-4 py-3 rounded-xl transition-all mt-2 uppercase tracking-wider w-full shadow-lg shadow-emerald-500/20">WhatsApp</a>
+        </div>
+
+        <div class="bg-zinc-950/50 p-4 border border-white/5 rounded-2xl space-y-2.5 backdrop-blur-md">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Ubicación y Dirección</span>
+          <p id="modalAddress" class="text-xs text-amber-300 font-bold leading-relaxed">Dirección: --</p>
+          <p id="modalCoords" class="text-xs font-mono text-zinc-400">Lat: --, Lng: --</p>
+          <div class="flex gap-2 pt-2">
+            <a id="btnWaze" href="#" target="_blank" class="flex-1 bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/20 text-sky-400 font-bold text-center py-2.5 rounded-xl text-xs transition-all">Waze</a>
+            <a id="btnMaps" href="#" target="_blank" class="flex-1 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-400 font-bold text-center py-2.5 rounded-xl text-xs transition-all">Google Maps</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-zinc-950/60 p-4 border border-white/5 rounded-2xl space-y-3.5 backdrop-blur-md">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">Cálculo Logístico y Viáticos</span>
+            <span id="modalDistInfo" class="text-xs text-amber-300 font-bold">Distancia: -- km</span>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label for="personnelCount" class="text-xs text-zinc-400 font-bold">Personal:</label>
+            <select id="personnelCount" onchange="recalculateModalViatics()" class="bg-zinc-900 border border-zinc-700 text-amber-300 font-bold text-xs p-2.5 rounded-xl outline-none focus:border-amber-400 flex-1 sm:flex-none">
+              <option value="1">1 Persona (Q225 hotel)</option>
+              <option value="2">2 Personas (Q215 x c/u)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs pt-1">
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Espuma Neta</span>
+            <span id="modalNetFoam" class="font-bold text-zinc-200 mt-0.5 block">Q0.00</span>
+          </div>
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span id="modalGasLabel" class="text-[9px] text-zinc-400 block font-medium">Gasolina</span>
+            <span id="modalGasCost" class="font-bold text-sky-300 mt-0.5 block">Q0.00</span>
+          </div>
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Hotel</span>
+            <span id="modalHotelCost" class="font-bold text-amber-300 mt-0.5 block">Q0.00</span>
+          </div>
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Comidas</span>
+            <span id="modalMealsCost" class="font-bold text-emerald-300 mt-0.5 block">Q0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-zinc-950/60 p-4 border border-white/5 rounded-2xl space-y-3 backdrop-blur-md">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Especificaciones de la Estructura</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Tipo</span>
+            <span id="modalRoofType" class="font-bold text-zinc-200 mt-0.5 block">--</span>
+          </div>
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Largo x Ancho</span>
+            <span id="modalDimensions" class="font-bold text-zinc-200 mt-0.5 block">--</span>
+          </div>
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Área Techo</span>
+            <span id="modalArea" class="font-bold text-amber-300 mt-0.5 block">--</span>
+          </div>
+          <div class="p-2.5 bg-zinc-900/80 rounded-xl border border-white/5">
+            <span class="text-[9px] text-zinc-400 block font-medium">Total con Viáticos</span>
+            <span id="modalTotal" class="font-black text-amber-400 text-sm mt-0.5 block">--</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="msgContainer" class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl hidden">
+  <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 block mb-1">Mensaje o Duda del Cliente:</span>
+  <p id="modalUserMsg" class="text-xs text-zinc-200 font-medium italic">"--"</p>
+</div>
+
+    </div>
+  </div>
+
+  <!-- FIREBASE Y LÓGICA GENERAL -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, query, orderBy, setDoc, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDga_Y4ftBSwCX2_vZo2TgMQTXsYcmIFzE",
+      authDomain: "monopiliuretano.firebaseapp.com",
+      projectId: "monopiliuretano",
+      storageBucket: "monopiliuretano.firebasestorage.app",
+      messagingSenderId: "928392704904",
+      appId: "1:928392704904:web:0130227ec46d33a959403d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const viewActivos = document.getElementById('viewActivos');
+    const viewFinalizados = document.getElementById('viewFinalizados');
+    const viewRechazados = document.getElementById('viewRechazados');
+    const viewEstadisticas = document.getElementById('viewEstadisticas');
+    const viewConfiguracion = document.getElementById('viewConfiguracion');
+    const searchBarContainer = document.getElementById('searchBarContainer');
+    const loadingState = document.getElementById('loadingState');
+    const emptyState = document.getElementById('emptyState');
+    const totalCount = document.getElementById('totalCount');
+
+    let currentOrders = [];
+    let advisorsList = [];
+    let activeTab = 'activos';
+    let editingCode = null;
+    let pendingDeleteId = null;
+    let pendingDeleteType = null;
+    let confirmResolver = null;
+
+    // --- GESTIÓN DE LAS 5 PESTAÑAS CON ESTILO APPLE PILL ---
+    window.switchTab = function(tabName) {
+      activeTab = tabName;
+      const views = {
+        activos: viewActivos,
+        finalizados: viewFinalizados,
+        rechazados: viewRechazados,
+        estadisticas: viewEstadisticas,
+        configuracion: viewConfiguracion
+      };
+
+      Object.keys(views).forEach(k => {
+        views[k].classList.add('hidden');
+        const btn = document.getElementById(`tabBtn${k.charAt(0).toUpperCase() + k.slice(1)}`);
+        if (btn) {
+          btn.className = "px-3.5 py-2 bg-transparent text-zinc-400 hover:text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 inline-flex items-center gap-2";
+        }
+      });
+
+      views[tabName].classList.remove('hidden');
+      const activeBtn = document.getElementById(`tabBtn${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+      if (activeBtn) {
+        if (tabName === 'activos') {
+          activeBtn.className = "px-3.5 py-2 bg-amber-400 text-zinc-950 font-extrabold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-400/10 shrink-0 inline-flex items-center gap-2";
+        } else {
+          activeBtn.className = "px-3.5 py-2 bg-zinc-800 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md shrink-0 inline-flex items-center gap-2";
+        }
+      }
+
+      if (tabName === 'estadisticas') {
+        searchBarContainer.classList.add('hidden');
+        renderStats();
+      } else if (tabName === 'configuracion') {
+        searchBarContainer.classList.add('hidden');
+      } else {
+        searchBarContainer.classList.remove('hidden');
+        renderAllOrders();
+      }
+    };
+
+    // --- CAMBIAR ESTADO DESDE LA TARJETA ---
+    window.updateOrderStatus = async function(e, id, newStatus) {
+      e.stopPropagation();
+      const order = currentOrders.find(o => o.id === id);
+      if (!order) return;
+      order.estado = newStatus;
+
+      try {
+        if (!id.startsWith('local_')) {
+          await updateDoc(doc(db, "cotizaciones", id), { estado: newStatus });
+        } else {
+          localStorage.setItem(id.replace('local_', ''), JSON.stringify(order));
+        }
+      } catch (err) {}
+
+      renderAllOrders();
+    };
+
+    // --- FILTRADO INTELIGENTE ---
+    window.filterOrders = function() {
+      const queryText = document.getElementById('globalSearchInput').value.toLowerCase().trim();
+      const targetContainer = activeTab === 'finalizados' ? viewFinalizados : (activeTab === 'rechazados' ? viewRechazados : viewActivos);
+      const cards = targetContainer.children;
+
+      currentOrders.forEach((order, index) => {
+        const estado = (order.estado || 'Activo').toLowerCase();
+        const matchesTab = (activeTab === 'activos' && (estado === 'activo' || estado === 'cita agendada' || estado === 'pendiente')) ||
+                           (activeTab === 'finalizados' && estado === 'terminado') ||
+                           (activeTab === 'rechazados' && (estado === 'rechazado' || estado === 'cancelado'));
+
+        if (matchesTab && cards[index]) {
+          const name = (order.name || '').toLowerCase();
+          const phone = (order.phone || '').toLowerCase();
+          const address = (order.address || order.direccion || '').toLowerCase();
+          const country = getCountryInfo(order).name.toLowerCase();
+
+          const matchesSearch = name.includes(queryText) || phone.includes(queryText) || address.includes(queryText) || country.includes(queryText);
+          if (matchesSearch) cards[index].classList.remove('hidden');
+          else cards[index].classList.add('hidden');
+        }
+      });
+    };
+
+    // --- GRÁFICOS DE DONA SVG ---
+    function renderDonutChart(svgId, totalId, listId, dataObj) {
+      const svg = document.getElementById(svgId);
+      const totalEl = document.getElementById(totalId);
+      const listEl = document.getElementById(listId);
+      svg.innerHTML = '';
+      listEl.innerHTML = '';
+
+      const entries = Object.entries(dataObj).sort((a, b) => b[1] - a[1]);
+      const total = entries.reduce((acc, curr) => acc + curr[1], 0);
+      totalEl.textContent = total;
+
+      if (total === 0) {
+        svg.innerHTML = `<circle cx="50" cy="50" r="38" fill="none" stroke="#27272a" stroke-width="14"></circle>`;
+        listEl.innerHTML = `<p class="text-zinc-500 italic text-center text-xs">No hay datos registrados aún.</p>`;
+        return;
+      }
+
+      const colors = ['#f59e0b', '#10b981', '#38bdf8', '#a855f7', '#ec4899', '#6366f1'];
+      let cumulativePercent = 0;
+
+      entries.forEach(([key, count], index) => {
+        const percent = count / total;
+        const color = colors[index % colors.length];
+        const strokeDasharray = `${percent * 238.76} 238.76`;
+        const strokeDashoffset = -cumulativePercent * 238.76;
+
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", "50"); circle.setAttribute("cy", "50"); circle.setAttribute("r", "38");
+        circle.setAttribute("fill", "none"); circle.setAttribute("stroke", color); circle.setAttribute("stroke-width", "14");
+        circle.setAttribute("stroke-dasharray", strokeDasharray); circle.setAttribute("stroke-dashoffset", strokeDashoffset);
+        svg.appendChild(circle);
+
+        cumulativePercent += percent;
+
+        listEl.innerHTML += `
+          <div class="flex justify-between items-center p-2.5 bg-zinc-950/70 border border-white/5 rounded-xl">
+            <div class="flex items-center gap-2.5 truncate max-w-[75%]">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style="background-color: ${color};"></span>
+              <span class="text-zinc-200 font-medium truncate" title="${key}">${key}</span>
+            </div>
+            <span class="px-2 py-0.5 bg-zinc-900 text-zinc-300 font-bold rounded-lg border border-white/5">${count} (${Math.round(percent * 100)}%)</span>
+          </div>
+        `;
+      });
+    }
+
+    function renderStats() {
+      const areasCounts = {};
+      const clientFrequency = {};
+
+      currentOrders.forEach(order => {
+        const country = getCountryInfo(order);
+        const areaKey = `${country.flag} ${country.name} - ${order.address || order.direccion || 'Ubicación General'}`;
+        areasCounts[areaKey] = (areasCounts[areaKey] || 0) + 1;
+
+        const clientKey = `${order.name || 'Sin Nombre'} (${order.phone || 'Sin Tel.'})`;
+        clientFrequency[clientKey] = (clientFrequency[clientKey] || 0) + 1;
+      });
+
+      renderDonutChart('donutAreas', 'donutTotalAreas', 'statsAreasList', areasCounts);
+      renderDonutChart('donutClients', 'donutTotalClients', 'statsFrequentClients', clientFrequency);
+    }
+
+    // --- EXPORTAR A EXCEL ---
+    window.exportToExcel = function() {
+      const queryText = document.getElementById('globalSearchInput').value.toLowerCase().trim();
+      const filtered = currentOrders.filter(order => {
+        const name = (order.name || '').toLowerCase();
+        const phone = (order.phone || '').toLowerCase();
+        const address = (order.address || order.direccion || '').toLowerCase();
+        const country = getCountryInfo(order).name.toLowerCase();
+        return name.includes(queryText) || phone.includes(queryText) || address.includes(queryText) || country.includes(queryText);
+      });
+
+      if (filtered.length === 0) {
+        alert("No hay datos visibles para exportar con este filtro.");
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "ID,Fecha,Cliente,Telefono,Direccion,Pais,Estado,Tipo Techo,Area (m2),Total Est.\n";
+
+      filtered.forEach(o => {
+        const date = o.createdAt ? new Date(o.createdAt).toLocaleString('es-GT') : 'Reciente';
+        const name = `"${(o.name || '').replace(/"/g, '""')}"`;
+        const phone = `"${(o.phone || '')}"`;
+        const address = `"${(o.address || o.direccion || '').replace(/"/g, '""')}"`;
+        const country = `"${getCountryInfo(o).name}"`;
+        const estado = `"${(o.estado || 'Activo')}"`;
+        const roof = `"${(o.roofType || 'domo')}"`;
+        const L = o.length || 0;
+        const W = o.width || 0;
+        const area = (L * W).toFixed(2) + " m²";
+        const fin = computeFinancials(o, 1);
+        const total = `${fin.sym}${fin.total.toFixed(2)}`;
+
+        csvContent += `${o.id},"${date}",${name},${phone},${address},${country},${estado},${roof},${area},${total}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `reporte_mono_espuma_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    // --- ASESORES ---
+    function loadAdvisors() {
+      const qAdv = query(collection(db, "asesores"));
+      onSnapshot(qAdv, (snapshot) => {
+        advisorsList = [];
+        snapshot.forEach(d => advisorsList.push(d.data()));
+        if(advisorsList.length === 0) loadLocalAdvisors();
+        renderAdvisorsList();
+        if (currentOrders.length > 0) renderAllOrders();
+      }, () => {
+        loadLocalAdvisors();
+        renderAdvisorsList();
+      });
+    }
+
+    function loadLocalAdvisors() {
+      const stored = localStorage.getItem('mono_advisors');
+      if (stored) { try { advisorsList = JSON.parse(stored); } catch(e) {} }
+    }
+
+    window.saveAdvisor = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('advName').value.trim();
+      const phone = document.getElementById('advPhone').value.trim();
+      const code = document.getElementById('advCode').value.trim().toUpperCase();
+
+      if(!name || !phone || !code) return;
+      const newAdv = { name, phone, code };
+      
+      try {
+        if (editingCode && editingCode !== code) await deleteDoc(doc(db, "asesores", editingCode));
+        await setDoc(doc(db, "asesores", code), newAdv);
+      } catch(err) {}
+
+      if (editingCode && editingCode !== code) advisorsList = advisorsList.filter(a => a.code !== editingCode);
+      const existingIdx = advisorsList.findIndex(a => a.code === code);
+      if (existingIdx >= 0) advisorsList[existingIdx] = newAdv;
+      else advisorsList.push(newAdv);
+
+      localStorage.setItem('mono_advisors', JSON.stringify(advisorsList));
+      resetAdvisorForm();
+      renderAdvisorsList();
+      renderAllOrders();
+    };
+
+    window.editAdvisor = function(code) {
+      const adv = advisorsList.find(a => a.code === code);
+      if (!adv) return;
+      editingCode = code;
+      document.getElementById('advName').value = adv.name;
+      document.getElementById('advPhone').value = adv.phone;
+      document.getElementById('advCode').value = adv.code;
+      document.getElementById('formTitle').textContent = "Editar Asesor";
+      document.getElementById('btnSaveAdvisor').textContent = "Actualizar Asesor";
+      document.getElementById('btnCancelEdit').classList.remove('hidden');
+    };
+
+    window.resetAdvisorForm = function() {
+      editingCode = null;
+      document.getElementById('advisorForm').reset();
+      document.getElementById('formTitle').textContent = "Registrar Nuevo Asesor";
+      document.getElementById('btnSaveAdvisor').textContent = "Guardar Asesor";
+      document.getElementById('btnCancelEdit').classList.add('hidden');
+    };
+
+    window.confirmDeleteAdvisor = async function(code) {
+      const adv = advisorsList.find(a => a.code === code);
+      document.getElementById('confirmTitle').textContent = `¿Eliminar a ${adv ? adv.name : code}?`;
+      document.getElementById('confirmMessage').textContent = `Se removerá el código ${code} de los asesores activos.`;
+      document.getElementById('confirmModal').classList.remove('hidden');
+      pendingDeleteId = code;
+      pendingDeleteType = 'advisor';
+      return new Promise((resolve) => { confirmResolver = resolve; });
+    };
+
+    window.closeConfirmModal = async function(confirmed) {
+      document.getElementById('confirmModal').classList.add('hidden');
+      if (confirmed && pendingDeleteId) {
+        if (pendingDeleteType === 'advisor') {
+          try { await deleteDoc(doc(db, "asesores", pendingDeleteId)); } catch(e) {}
+          advisorsList = advisorsList.filter(a => a.code !== pendingDeleteId);
+          localStorage.setItem('mono_advisors', JSON.stringify(advisorsList));
+          renderAdvisorsList();
+        } else if (pendingDeleteType === 'quote') {
+          const id = pendingDeleteId;
+          try { if (!id.startsWith('local_')) await deleteDoc(doc(db, "cotizaciones", id)); } catch (err) {}
+          currentOrders = currentOrders.filter(o => o.id !== id);
+          if (id.startsWith('local_')) localStorage.removeItem(id.replace('local_', ''));
+          renderAllOrders();
+        }
+      }
+      pendingDeleteId = null;
+      pendingDeleteType = null;
+      if (confirmResolver) confirmResolver(confirmed);
+    };
+
+    function renderAdvisorsList() {
+      const container = document.getElementById('advisorsList');
+      if (!container) return;
+      container.innerHTML = '';
+      if (advisorsList.length === 0) {
+        container.innerHTML = `<p class="text-xs text-zinc-500 italic px-1">No hay asesores configurados aún.</p>`;
+        return;
+      }
+      advisorsList.forEach(adv => {
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center p-3 bg-zinc-950/70 border border-white/5 rounded-2xl text-xs gap-2';
+        item.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <span class="font-bold text-white block truncate">${adv.name}</span>
+            <span class="text-[10px] text-zinc-400 font-mono block mt-0.5">Tel: ${adv.phone}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 bg-amber-400/10 border border-amber-400/20 text-amber-300 font-mono font-bold text-[10px] rounded-lg">${adv.code}</span>
+            <button onclick="editAdvisor('${adv.code}')" title="Editar" class="p-2 bg-zinc-900 hover:bg-zinc-800 rounded-xl text-xs font-bold border border-white/5 flex items-center justify-center transition-all">
+              <img src="editar.png" alt="Editar" class="w-3.5 h-3.5 object-contain brightness-0 invert">
+            </button>
+            <button onclick="confirmDeleteAdvisor('${adv.code}')" title="Eliminar" class="p-2 bg-zinc-900 hover:bg-red-500/20 rounded-xl text-xs font-bold border border-white/5 text-red-400 transition-all">✕</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // --- THREE.JS ADMIN VISOR ---
+    let adminScene, adminCamera, adminRenderer, adminControls, adminAnimationId;
+    let adminRoofGroup = new THREE.Group();
+    let adminDimensionGroup = new THREE.Group();
+
+    function initAdmin3DScene() {
+      const container = document.getElementById('admin-canvas-container');
+      container.innerHTML = '';
+      adminScene = new THREE.Scene();
+      adminScene.background = new THREE.Color(0x09090b);
+
+      adminCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      adminRenderer = new THREE.WebGLRenderer({ antialias: true });
+      adminRenderer.setSize(container.clientWidth, container.clientHeight);
+      adminRenderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(adminRenderer.domElement);
+
+      adminControls = new THREE.OrbitControls(adminCamera, adminRenderer.domElement);
+      adminControls.enableDamping = true;
+      adminControls.dampingFactor = 0.05;
+
+      adminScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+      const mainLight = new THREE.DirectionalLight(0xfffbeb, 1.2);
+      mainLight.position.set(40, 80, 50);
+      adminScene.add(mainLight);
+
+      adminScene.add(new THREE.GridHelper(120, 60, 0xf59e0b, 0x27272a));
+      adminScene.add(adminRoofGroup);
+      adminScene.add(adminDimensionGroup);
+
+      if (adminAnimationId) cancelAnimationFrame(adminAnimationId);
+      function animateAdmin3D() {
+        adminAnimationId = requestAnimationFrame(animateAdmin3D);
+        adminControls.update();
+        adminRenderer.render(adminScene, adminCamera);
+      }
+      animateAdmin3D();
+    }
+
+    function createAdminTextSprite(text, color = '#f5ebd6', maxDim = 40) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(9, 9, 11, 0.92)';
+      ctx.roundRect(10, 10, 492, 108, 18); ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.stroke();
+      ctx.fillStyle = color; ctx.font = 'Bold 38px "Plus Jakarta Sans", sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(text, 256, 64);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMaterial);
+      const scaleBase = maxDim * 0.15;
+      sprite.scale.set(scaleBase * 2.2, scaleBase * 0.55, 1);
+      return sprite;
+    }
+
+    function createAdminDimensionLine(p1, p2, color = 0xf5ebd6) {
+      const geometry = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+      const material = new THREE.LineDashedMaterial({ color: color, dashSize: 0.8, gapSize: 0.4, linewidth: 2 });
+      const line = new THREE.Line(geometry, material); line.computeLineDistances();
+      return line;
+    }
+
+    function buildAdmin3DModel(item) {
+      while (adminRoofGroup.children.length > 0) adminRoofGroup.remove(adminRoofGroup.children[0]);
+      while (adminDimensionGroup.children.length > 0) adminDimensionGroup.remove(adminDimensionGroup.children[0]);
+
+      const L = item.length || 40.0;
+      const W = item.width || 20.0;
+      const T = 0.25;
+      const H = item.roofHeight || 5.0;
+      const WH = item.workHeight || 0.0;
+      const roofType = item.roofType || 'domo';
+
+      const shape = new THREE.Shape();
+      let extrudeSettings = { depth: W, bevelEnabled: false };
+
+      if (roofType === 'plana') {
+        shape.moveTo(-L/2, 0); shape.lineTo(L/2, 0); shape.lineTo(L/2, T); shape.lineTo(-L/2, T); shape.closePath();
+      } else if (roofType === 'dos_caidas') {
+        shape.moveTo(-L/2, 0); shape.lineTo(0, H); shape.lineTo(L/2, 0); shape.lineTo(L/2, T); shape.lineTo(0, H + T); shape.lineTo(-L/2, T); shape.closePath();
+      } else if (roofType === 'una_caida') {
+        shape.moveTo(-L/2, 0); shape.lineTo(L/2, H); shape.lineTo(L/2, H + T); shape.lineTo(-L/2, T); shape.closePath();
+      } else if (roofType === 'domo') {
+        const segments = 32, radius = L / 2;
+        for (let i = 0; i <= segments; i++) {
+          const theta = (Math.PI * i) / segments;
+          const x = -radius * Math.cos(theta);
+          const y = (H / radius) * radius * Math.sin(theta);
+          if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+        }
+        for (let i = segments; i >= 0; i--) {
+          const theta = (Math.PI * i) / segments;
+          const x = -radius * Math.cos(theta);
+          const y = (H / radius) * radius * Math.sin(theta) + T;
+          shape.lineTo(x, y);
+        }
+        shape.closePath();
+      }
+
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geometry.center();
+      const foamMaterial = new THREE.MeshStandardMaterial({ color: 0xf5ebd6, roughness: 0.92, metalness: 0.02, side: THREE.DoubleSide });
+      const foamMesh = new THREE.Mesh(geometry, foamMaterial);
+      const edges = new THREE.EdgesGeometry(geometry);
+      foamMesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xb5a48b, linewidth: 1 })));
+
+      const baseY = WH + (roofType === 'plana' ? T/2 : 0);
+      foamMesh.position.set(0, baseY, 0);
+      adminRoofGroup.add(foamMesh);
+
+      const maxDim = Math.max(L, W, WH + H);
+      const offsetX = L / 2 + maxDim * 0.08;
+      const offsetZ = W / 2 + maxDim * 0.08;
+
+      adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(-L/2, baseY, offsetZ), new THREE.Vector3(L/2, baseY, offsetZ)));
+      const spriteL = createAdminTextSprite(`Largo: ${L.toFixed(1)} m`, '#f5ebd6', maxDim);
+      spriteL.position.set(0, baseY + maxDim * 0.03, offsetZ);
+      adminDimensionGroup.add(spriteL);
+
+      adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(offsetX, baseY, -W/2), new THREE.Vector3(offsetX, baseY, W/2)));
+      const spriteW = createAdminTextSprite(`Ancho: ${W.toFixed(1)} m`, '#f5ebd6', maxDim);
+      spriteW.position.set(offsetX, baseY + maxDim * 0.03, 0);
+      adminDimensionGroup.add(spriteW);
+
+      if (WH > 0) {
+        adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(-offsetX, 0, -W/2), new THREE.Vector3(-offsetX, WH, -W/2), 0xf59e0b));
+        const spriteWH = createAdminTextSprite(`Altura Suelo: ${WH.toFixed(1)} m`, '#f59e0b', maxDim);
+        spriteWH.position.set(-offsetX, WH / 2, -W/2);
+        adminDimensionGroup.add(spriteWH);
+      }
+
+      if (roofType !== 'plana') {
+        adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(0, WH, 0), new THREE.Vector3(0, WH + H, 0)));
+        const labelName = roofType === 'domo' ? 'Flecha' : (roofType === 'dos_caidas' ? 'Cumbrera' : 'Desnivel');
+        const spriteH = createAdminTextSprite(`${labelName}: ${H.toFixed(1)} m`, '#f5ebd6', maxDim);
+        spriteH.position.set(0, WH + H / 2, 0);
+        adminDimensionGroup.add(spriteH);
+      }
+
+      const spriteT = createAdminTextSprite(`Espesor: 2.5 cm`, '#f5ebd6', maxDim);
+      spriteT.position.set(L/2, baseY + (roofType === 'plana' ? T : H + T), W/2);
+      adminDimensionGroup.add(spriteT);
+
+      adminCamera.position.set(maxDim * 0.95, WH + maxDim * 0.6, maxDim * 1.1);
+      adminControls.target.set(0, WH / 2, 0);
+      adminControls.update();
+    }
+
+    // --- CARGA DE DATOS FIREBASE / LOCAL ---
+    function loadLocalBackups() {
+      const localData = [];
+      const keys = ['appointmentData', 'latestLiveMessage', 'latestAppointment'];
+      keys.forEach(k => {
+        const item = localStorage.getItem(k);
+        if (item) {
+          try {
+            const parsed = JSON.parse(item);
+            parsed.id = 'local_' + k;
+            if(!parsed.estado) parsed.estado = 'Activo';
+            localData.push(parsed);
+          } catch(e) {}
+        }
+      });
+      return localData;
+    }
+
+    const q = query(collection(db, "cotizaciones"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+      loadingState.classList.add('hidden');
+      currentOrders = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        data.id = doc.id;
+        if(!data.estado) data.estado = 'Activo';
+        currentOrders.push(data);
+      });
+      if (currentOrders.length === 0) currentOrders = loadLocalBackups();
+      renderAllOrders();
+    }, (error) => {
+      loadingState.classList.add('hidden');
+      currentOrders = loadLocalBackups();
+      renderAllOrders();
+    });
+
+    function renderAllOrders() {
+      viewActivos.innerHTML = '';
+      viewFinalizados.innerHTML = '';
+      viewRechazados.innerHTML = '';
+
+      if (currentOrders.length === 0) {
+        emptyState.classList.remove('hidden');
+        totalCount.textContent = "0";
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      totalCount.textContent = currentOrders.length;
+
+      let counts = { activos: 0, finalizados: 0, rechazados: 0 };
+
+      currentOrders.forEach((data) => {
+        const estado = (data.estado || 'Activo').toLowerCase();
+        const card = createOrderCard(data);
+
+        if (estado === 'terminado') {
+          viewFinalizados.appendChild(card);
+          counts.finalizados++;
+        } else if (estado === 'rechazado' || estado === 'cancelado') {
+          viewRechazados.appendChild(card);
+          counts.rechazados++;
+        } else {
+          // Todo lo demás (Activos, Escribiendo, Cita Solicitada, etc.) va a Activos por defecto
+          viewActivos.appendChild(card);
+          counts.activos++;
+        }
+      });
+
+      if (counts.activos === 0) viewActivos.innerHTML = `<div class="col-span-full text-center py-16 text-zinc-500 text-xs italic">No hay solicitudes activas.</div>`;
+      if (counts.finalizados === 0) viewFinalizados.innerHTML = `<div class="col-span-full text-center py-16 text-zinc-500 text-xs italic">No hay solicitudes finalizadas.</div>`;
+      if (counts.rechazados === 0) viewRechazados.innerHTML = `<div class="col-span-full text-center py-16 text-zinc-500 text-xs italic">No hay solicitudes rechazadas o canceladas.</div>`;
+    }
+
+    function createOrderCard(data) {
+      const card = document.createElement('div');
+      card.className = 'apple-card rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4 cursor-pointer group relative';
+      card.onclick = () => openModal(data.id);
+
+      const dateStr = data.createdAt ? new Date(data.createdAt).toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente';
+      const matchedAdv = advisorsList.find(a => a.code === data.advisorCode);
+      const currentEstado = data.estado || 'Activo';
+
+      let estadoColor = 'bg-amber-400/10 border-amber-400/25 text-amber-400';
+      if (currentEstado === 'Terminado') estadoColor = 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400';
+      if (currentEstado === 'Cancelado') estadoColor = 'bg-sky-500/10 border-sky-500/25 text-sky-400';
+      if (currentEstado === 'Rechazado') estadoColor = 'bg-red-500/10 border-red-500/25 text-red-400';
+
+      card.innerHTML = `
+        <div class="space-y-3">
+          <div class="flex justify-between items-start gap-2">
+            <span class="px-3 py-1 border ${estadoColor} text-[10px] font-bold rounded-full uppercase tracking-wider">${currentEstado}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-zinc-400 font-medium">${dateStr}</span>
+              <button onclick="deleteQuote(event, '${data.id}')" title="Eliminar" class="w-6 h-6 rounded-lg bg-zinc-800/80 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 border border-white/5 flex items-center justify-center font-bold text-xs transition-all">✕</button>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white group-hover:text-amber-300 transition-colors tracking-tight">${data.name || 'Cliente sin nombre'}</h3>
+            <p class="text-xs text-zinc-400 font-medium mt-0.5">Tel: ${data.phone || 'Sin número'}</p>
+            <p class="text-xs text-zinc-300 font-semibold mt-1">📍 ${data.address || 'Sin dirección'}</p>
+          </div>
+          ${matchedAdv ? `<div class="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs"><span class="text-[9px] text-amber-400 font-bold block uppercase tracking-wider">Asesor:</span><span class="font-bold text-zinc-200 mt-0.5 block">${matchedAdv.name} (${matchedAdv.code})</span></div>` : ''}
+          <div class="flex flex-wrap gap-1.5 pt-1" onclick="event.stopPropagation()">
+            <span class="text-[9px] font-bold uppercase text-zinc-400 w-full tracking-wider">Cambiar Estado:</span>
+            <button onclick="updateOrderStatus(event, '${data.id}', 'Activo')" class="px-2.5 py-1 bg-zinc-950/80 border ${currentEstado === 'Activo' ? 'border-amber-400 text-amber-400 font-bold' : 'border-white/5 text-zinc-400'} rounded-lg text-[10px] transition-all">Activo</button>
+            <button onclick="updateOrderStatus(event, '${data.id}', 'Terminado')" class="px-2.5 py-1 bg-zinc-950/80 border ${currentEstado === 'Terminado' ? 'border-emerald-500 text-emerald-400 font-bold' : 'border-white/5 text-zinc-400'} rounded-lg text-[10px] transition-all">Terminado</button>
+            <button onclick="updateOrderStatus(event, '${data.id}', 'Cancelado')" class="px-2.5 py-1 bg-zinc-950/80 border ${currentEstado === 'Cancelado' ? 'border-sky-500 text-sky-400 font-bold' : 'border-white/5 text-zinc-400'} rounded-lg text-[10px] transition-all">Cancelado</button>
+            <button onclick="updateOrderStatus(event, '${data.id}', 'Rechazado')" class="px-2.5 py-1 bg-zinc-950/80 border ${currentEstado === 'Rechazado' ? 'border-red-500 text-red-400 font-bold' : 'border-white/5 text-zinc-400'} rounded-lg text-[10px] transition-all">Rechazado</button>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-white/5 flex justify-between items-center text-xs">
+          <span class="text-zinc-400 font-medium">Total Est.:</span>
+          <span class="text-base font-black text-amber-400 tracking-tight">
+            ${(() => {
+              if (data.totalPrice && data.totalPrice !== 'Q0.00') return data.totalPrice;
+              const L = data.length || 0;
+              const W = data.width || 0;
+              let area = L * W;
+              if (area <= 0) return 'Q0.00';
+              if (data.roofType === 'dos_caidas') area = 2 * (Math.sqrt(Math.pow(L / 2, 2) + Math.pow(data.roofHeight || 5, 2)) * W);
+              return `Q${((area * 175) + 750).toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            })()}
+          </span>
+        </div>
+      `;
+      return card;
+    }
+
+    window.openModal = function(id) {
+      const item = currentOrders.find(o => o.id === id);
+      if (!item) return;
+
+      document.getElementById('modalName').textContent = item.name || 'Cliente';
+      document.getElementById('modalDate').textContent = item.createdAt ? new Date(item.createdAt).toLocaleString('es-GT') : '';
+      document.getElementById('modalPhone').textContent = item.phone || 'Sin teléfono';
+      document.getElementById('modalProblem').innerHTML = `<span class="text-zinc-400 font-normal">Problema:</span> <span class="text-amber-300 font-semibold">${item.problem || 'No especificado'}</span>`;
+      document.getElementById('modalEstadoBadge').textContent = item.estado || 'Activo';
+      
+      const matchedAdv = advisorsList.find(a => a.code === item.advisorCode);
+      if (matchedAdv) {
+        document.getElementById('modalAdvisorName').textContent = `${matchedAdv.name} (${matchedAdv.code})`;
+        document.getElementById('modalAdvisorPhone').textContent = `Tel: ${matchedAdv.phone}`;
+      } else {
+        document.getElementById('modalAdvisorName').textContent = item.advisorCode || 'Sin Código';
+        document.getElementById('modalAdvisorPhone').textContent = 'Venta Directa';
+      }
+
+      // CORRECCIÓN: Capturar y mostrar el mensaje final del cliente (revisando todas las posibles variantes de clave)
+      const msgContainer = document.getElementById('msgContainer');
+      const modalUserMsg = document.getElementById('modalUserMsg');
+      const clientMessage = item.mensajeAsesor || item.userMessage || item.message || item.nota || item.text;
+      
+      if (clientMessage && clientMessage.trim() !== "") {
+        modalUserMsg.textContent = `"${clientMessage}"`;
+        msgContainer.classList.remove('hidden');
+      } else {
+        msgContainer.classList.add('hidden');
+      }
+
+      document.getElementById('modalRoofType').textContent = (item.roofType || 'domo').replace(/_/g, ' ');
+      document.getElementById('modalDimensions').textContent = `${item.length || 0}m x ${item.width || 0}m`;
+
+      let calculatedArea = item.areaTecho || `${((item.length || 0) * (item.width || 0)).toFixed(2)} m²`;
+      let calculatedTotal = item.totalPrice || `Q${(((item.length || 0) * (item.width || 0) * 175) + 750).toLocaleString('es-GT', {minimumFractionDigits: 2})}`;
+
+      document.getElementById('modalArea').textContent = calculatedArea;
+      document.getElementById('modalTotal').textContent = calculatedTotal;
+      document.getElementById('modalCoords').textContent = `Lat: ${item.lat || '--'}, Lng: ${item.lng || '--'}`;
+      document.getElementById('modalAddress').innerHTML = `<span class="text-zinc-400 font-normal">Dirección:</span> <span class="text-white font-bold">${item.address || item.direccion || 'No especificada'}</span>`;
+
+      const cleanPhone = (item.phone || '').replace(/[^\d]/g, '');
+      document.getElementById('btnWhatsApp').href = `https://wa.me/${cleanPhone.startsWith('502') ? cleanPhone : '502' + cleanPhone}?text=Hola%20${encodeURIComponent(item.name || '')},%20te%20saludamos%20de%20Mono%20Espuma.`;
+      
+      const lat = item.lat || 14.6349;
+      const lng = item.lng || -90.5069;
+      document.getElementById('btnWaze').href = item.wazeUrl || `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+      document.getElementById('btnMaps').href = item.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+      activeModalItem = item;
+      document.getElementById('detailModal').classList.remove('hidden');
+      document.getElementById('personnelCount').value = "1";
+      recalculateModalViatics();
+
+      setTimeout(() => {
+        initAdmin3DScene();
+        buildAdmin3DModel(item);
+      }, 150);
+    };
+
+    window.closeModal = function() {
+      if (adminAnimationId) cancelAnimationFrame(adminAnimationId);
+      document.getElementById('detailModal').classList.add('hidden');
+    };
+
+    loadAdvisors();
+
+    window.deleteQuote = function(e, id) {
+      e.stopPropagation();
+      const item = currentOrders.find(o => o.id === id);
+      document.getElementById('confirmTitle').textContent = `¿Eliminar solicitud?`;
+      document.getElementById('confirmMessage').textContent = `Se borrará permanentemente la solicitud de "${item ? item.name : 'este cliente'}".`;
+      document.getElementById('btnConfirmAction').onclick = () => {
+        pendingDeleteId = id;
+        pendingDeleteType = 'quote';
+        closeConfirmModal(true);
+      };
+      document.getElementById('confirmModal').classList.remove('hidden');
+    };
+
+    let activeModalItem = null;
+    const START_LAT = 14.53875;
+    const START_LNG = -90.452528;
+
+    function calculateDistanceFromStart(lat, lng) {
+      if (!lat || !lng) return 0;
+      const R = 6371;
+      const dLat = (parseFloat(lat) - START_LAT) * Math.PI / 180;
+      const dLon = (parseFloat(lng) - START_LNG) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(START_LAT * Math.PI / 180) * Math.cos(parseFloat(lat) * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
+
+    function getCountryInfo(item) {
+      // Si la cotización ya trae el país guardado desde el mapa del cotizador:
+      if (item.country) {
+        const code = (item.countryCode || '').toUpperCase();
+        let flag = '🌍';
+        
+        // Generador automático de banderas mundiales por código ISO de 2 letras (ej: 'FR' -> 🇫🇷, 'CR' -> 🇨🇷)
+        if (code.length === 2) {
+          flag = code.replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
+        }
+        
+        return { 
+          flag: flag, 
+          name: item.country, 
+          code: code 
+        };
+      }
+
+      // Respaldo por si es un registro antiguo sin ubicación registrada:
+      return { flag: '🌍', name: 'Internacional / Global', code: 'GL' };
+    }
+
+    function computeFinancials(item, personnel = 1) {
+      const config = getGlobalConfig();
+      const country = getCountryInfo(item);
+      const L = item.length || 0;
+      const W = item.width || 0;
+      let area = L * W;
+
+      if (area <= 0) return { netFoam: 0, gasCost: 0, hotelCost: 0, mealsCost: 0, total: 0, distanceKm: 0, sym: config.currency, country };
+
+      if (item.roofType === 'dos_caidas') area = 2 * (Math.sqrt(Math.pow(L / 2, 2) + Math.pow(item.roofHeight || 5, 2)) * W);
+      else if (item.roofType === 'una_caida') area = Math.sqrt(Math.pow(L, 2) + Math.pow(item.roofHeight || 5, 2)) * W;
+
+      let netFoam = area * 175;
+      const distanceKm = calculateDistanceFromStart(item.lat, item.lng);
+      let gasCost = distanceKm * config.gasRate;
+      let hotelCost = 0, mealsCost = 0;
+
+      if (distanceKm > 45) {
+        hotelCost = personnel === 2 ? (config.hotel2 * 2) : config.hotel1;
+        mealsCost = 40 * 3 * personnel;
+      }
+
+      let total = netFoam + gasCost + hotelCost + mealsCost;
+      const sym = config.currency;
+      const rate = config.exchangeRate > 0 ? config.exchangeRate : 7.80;
+
+      if (sym === '$') {
+        netFoam /= rate; gasCost /= rate; hotelCost /= rate; mealsCost /= rate; total /= rate;
+      }
+
+      return { netFoam, gasCost, hotelCost, mealsCost, total, distanceKm, sym, country };
+    }
+
+    window.recalculateModalViatics = function() {
+      if (!activeModalItem) return;
+      const personnel = parseInt(document.getElementById('personnelCount').value) || 1;
+      const fin = computeFinancials(activeModalItem, personnel);
+      const sym = fin.sym;
+
+      document.getElementById('modalAddress').innerHTML = `<span class="text-zinc-400 font-normal">Dirección:</span> <span class="text-white font-bold">${activeModalItem.address || activeModalItem.direccion || 'No especificada'}</span><span class="ml-2 px-2.5 py-0.5 bg-zinc-800/80 border border-white/10 rounded-lg text-xs font-bold text-amber-300">${fin.country.flag} ${fin.country.name}</span>`;
+      document.getElementById('modalDistInfo').textContent = `Distancia: ${fin.distanceKm.toFixed(1)} km`;
+      document.getElementById('modalNetFoam').textContent = `${sym}${fin.netFoam.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      
+      const currentGlobalCfg = getGlobalConfig();
+      document.getElementById('modalGasLabel').textContent = `Gasolina (${sym}${currentGlobalCfg.gasRate}/km)`;
+      document.getElementById('modalGasCost').textContent = `${sym}${fin.gasCost.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('modalHotelCost').textContent = `${sym}${fin.hotelCost.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('modalMealsCost').textContent = `${sym}${fin.mealsCost.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('modalTotal').textContent = `${sym}${fin.total.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    };
+
+    function getGlobalConfig() {
+      const stored = localStorage.getItem('mono_global_config');
+      let fallback = {
+        hotel1: parseFloat(document.getElementById('configHotel1')?.value) || 225,
+        hotel2: parseFloat(document.getElementById('configHotel2')?.value) || 215,
+        gasRate: parseFloat(document.getElementById('configGasRate')?.value) || 10,
+        currency: document.getElementById('configCurrency')?.value || 'Q',
+        exchangeRate: parseFloat(document.getElementById('configExchangeRate')?.value) || 7.80
+      };
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return {
+            hotel1: parsed.hotel1 ?? fallback.hotel1,
+            hotel2: parsed.hotel2 ?? fallback.hotel2,
+            gasRate: parsed.gasRate ?? fallback.gasRate,
+            currency: parsed.currency ?? fallback.currency,
+            exchangeRate: parsed.exchangeRate ?? fallback.exchangeRate
+          };
+        } catch(e) {}
+      }
+      return fallback;
+    }
+
+    window.saveGlobalConfig = function() {
+      const config = {
+        hotel1: parseFloat(document.getElementById('configHotel1')?.value) || 225,
+        hotel2: parseFloat(document.getElementById('configHotel2')?.value) || 215,
+        gasRate: parseFloat(document.getElementById('configGasRate')?.value) || 10,
+        currency: document.getElementById('configCurrency')?.value || 'Q',
+        exchangeRate: parseFloat(document.getElementById('configExchangeRate')?.value) || 7.80
+      };
+      localStorage.setItem('mono_global_config', JSON.stringify(config));
+      if (activeModalItem) recalculateModalViatics();
+      if (typeof renderAllOrders === 'function') renderAllOrders();
+    };
+
+    function loadGlobalConfigToUI() {
+      const stored = localStorage.getItem('mono_global_config');
+      if (stored) {
+        try {
+          const config = JSON.parse(stored);
+          if(document.getElementById('configHotel1')) document.getElementById('configHotel1').value = config.hotel1;
+          if(document.getElementById('configHotel2')) document.getElementById('configHotel2').value = config.hotel2;
+          if(document.getElementById('configGasRate')) document.getElementById('configGasRate').value = config.gasRate ?? 10;
+          if(document.getElementById('configCurrency')) document.getElementById('configCurrency').value = config.currency;
+          if(document.getElementById('configExchangeRate')) document.getElementById('configExchangeRate').value = config.exchangeRate;
+        } catch(e) {}
+      }
+    }
+
+    loadGlobalConfigToUI();
+    switchTab('activos');
+
+
+    
+  </script>
+</body>
+</html>
