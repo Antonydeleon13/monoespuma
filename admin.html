@@ -944,7 +944,7 @@
 
       if (WH > 0) {
         adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(-offsetX, 0, -W/2), new THREE.Vector3(-offsetX, WH, -W/2), 0xf59e0b));
-        const spriteWH = createAdminTextSprite(`Altura Suelo: ${WH.toFixed(1)} m`, '#f59e0b', maxDim);
+        const spriteWH = createAdminTextSprite(`Altura Suelo: ${WH.toFixed(1)} m`, '#f5ebd6', maxDim);
         spriteWH.position.set(-offsetX, WH / 2, -W/2);
         adminDimensionGroup.add(spriteWH);
       }
@@ -1433,19 +1433,144 @@ let pdfResolver = null;
       const clientPhone = document.getElementById('pdfInputPhone').value.trim() || (activeModalItem.phone || "");
       const clientNit = document.getElementById('pdfInputNit').value.trim() || "CF";
 
-      // Rellenar datos en la plantilla
-      document.getElementById('pdfDate').textContent = new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' });
-      document.getElementById('pdfClientName').textContent = clientName;
-      document.getElementById('pdfClientPhone').textContent = clientPhone;
-      document.getElementById('pdfClientNit').textContent = clientNit;
-      document.getElementById('pdfClientId').textContent = activeModalItem.id ? activeModalItem.id : 'N/A';
+      const setSafeText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
 
-      document.getElementById('pdfRoofType').textContent = (activeModalItem.roofType || 'domo').replace(/_/g, ' ');
-      document.getElementById('pdfDimensions').textContent = `${activeModalItem.length || 0}m x ${activeModalItem.width || 0}m`;
-      document.getElementById('pdfArea').textContent = document.getElementById('modalArea').textContent;
-      document.getElementById('pdfTotal').textContent = document.getElementById('modalTotal').textContent;
+      setSafeText('pdfDate', new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' }));
+      setSafeText('pdfClientName', clientName);
+      setSafeText('pdfClientPhone', clientPhone);
+      setSafeText('pdfClientNit', clientNit);
+      setSafeText('pdfClientId', activeModalItem.id ? activeModalItem.id : 'N/A');
 
-      // CAPTURAS TÉCNICAS MÚLTIPLES (PLANTA Y FRONTAL)
+      setSafeText('pdfRoofType', (activeModalItem.roofType || 'domo').replace(/_/g, ' '));
+      setSafeText('pdfDimensions', `${activeModalItem.length || 0}m x ${activeModalItem.width || 0}m`);
+      
+      const modalAreaEl = document.getElementById('modalArea');
+      const modalTotalEl = document.getElementById('modalTotal');
+      setSafeText('pdfArea', modalAreaEl ? modalAreaEl.textContent : '--');
+      setSafeText('pdfTotal', modalTotalEl ? modalTotalEl.textContent : '--');
+
+      const L = activeModalItem.length || 40.0;
+      const W = activeModalItem.width || 20.0;
+      const T = 0.25;
+      const H = activeModalItem.roofHeight || 5.0;
+      const WH = activeModalItem.workHeight || 0.0;
+      const roofType = activeModalItem.roofType || 'domo';
+
+      // ASIGNAR LAS MEDIDAS REALES DEL CLIENTE A LOS TEXTOS EN LOS CUADROS NEGROS
+      setSafeText('pdfTextLargo', `${L.toFixed(1)} m`);
+      setSafeText('pdfTextAncho', `${W.toFixed(1)} m`);
+      setSafeText('pdfTextSuelo', `${WH.toFixed(1)} m`);
+      
+      const labelName = roofType === 'domo' ? 'Flecha' : (roofType === 'dos_caidas' ? 'Cumbrera' : 'Desnivel');
+      const titleEl = document.getElementById('pdfTextAltTitle');
+      if (titleEl) titleEl.textContent = labelName;
+      setSafeText('pdfTextAlt', `${H.toFixed(1)} m`);
+
+     // FUNCIÓN INTELIGENTE: ACOPLAR LÍneas TÉCNICAS EXACTAS Y ESCALA AUTOMÁTICA PARA EL PDF
+      function buildPdfCleanScene(viewType) {
+        while (adminRoofGroup.children.length > 0) adminRoofGroup.remove(adminRoofGroup.children[0]);
+        while (adminDimensionGroup.children.length > 0) adminDimensionGroup.remove(adminDimensionGroup.children[0]);
+
+        const shape = new THREE.Shape();
+        let extrudeSettings = { depth: W, bevelEnabled: false };
+
+        if (roofType === 'plana') {
+          shape.moveTo(-L/2, 0); shape.lineTo(L/2, 0); shape.lineTo(L/2, T); shape.lineTo(-L/2, T); shape.closePath();
+        } else if (roofType === 'dos_caidas') {
+          shape.moveTo(-L/2, 0); shape.lineTo(0, H); shape.lineTo(L/2, 0); shape.lineTo(L/2, T); shape.lineTo(0, H + T); shape.lineTo(-L/2, T); shape.closePath();
+        } else if (roofType === 'una_caida') {
+          shape.moveTo(-L/2, 0); shape.lineTo(L/2, H); shape.lineTo(L/2, H + T); shape.lineTo(-L/2, T); shape.closePath();
+        } else if (roofType === 'domo') {
+          const segments = 32, radius = L / 2;
+          for (let i = 0; i <= segments; i++) {
+            const theta = (Math.PI * i) / segments;
+            const x = -radius * Math.cos(theta);
+            const y = (H / radius) * radius * Math.sin(theta);
+            if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+          }
+          for (let i = segments; i >= 0; i--) {
+            const theta = (Math.PI * i) / segments;
+            const x = -radius * Math.cos(theta);
+            const y = (H / radius) * radius * Math.sin(theta) + T;
+            shape.lineTo(x, y);
+          }
+          shape.closePath();
+        }
+
+        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        geometry.center();
+        const foamMaterial = new THREE.MeshBasicMaterial({ color: 0xe4e4e7, side: THREE.DoubleSide });
+        const foamMesh = new THREE.Mesh(geometry, foamMaterial);
+        const edges = new THREE.EdgesGeometry(geometry);
+        foamMesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x18181b, linewidth: 1.5 })));
+
+        const baseY = WH + (roofType === 'plana' ? T/2 : 0);
+        foamMesh.position.set(0, baseY, 0);
+        adminRoofGroup.add(foamMesh);
+
+        // Dimensión máxima para calcular la escala inteligente
+        const maxDim = Math.max(L, W, WH + H);
+
+        if (viewType === 'top') {
+          // Posicionamiento exacto tal como lo marcaste en tu esquema rojo
+          const offsetZ = W / 2 + maxDim * 0.18;
+          const offsetX = L / 2 + maxDim * 0.18;
+
+          // 1. Línea de Largo (Abajo del techo)
+          adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(-L/2, baseY, offsetZ), new THREE.Vector3(L/2, baseY, offsetZ), 0x18181b));
+          const spriteL = createAdminTextSprite(`Largo: ${L.toFixed(1)} m`, '#ffffff', maxDim);
+          spriteL.position.set(0, baseY, offsetZ);
+          adminDimensionGroup.add(spriteL);
+
+          // 2. Línea de Ancho (A un costado del techo)
+          adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(offsetX, baseY, -W/2), new THREE.Vector3(offsetX, baseY, W/2), 0x18181b));
+          const spriteW = createAdminTextSprite(`Ancho: ${W.toFixed(1)} m`, '#ffffff', maxDim);
+          spriteW.position.set(offsetX, baseY, 0);
+          adminDimensionGroup.add(spriteW);
+
+          // Zoom inteligente adaptable: si es muy grande, la cámara se aleja automáticamente
+          const zoomFactor = Math.max(1.4, maxDim * 0.05);
+          adminCamera.position.set(0, maxDim * zoomFactor, 0.001);
+          adminCamera.lookAt(0, WH / 2, 0);
+
+        } else if (viewType === 'front') {
+          const topRoofY = WH + (roofType === 'plana' ? T : H + T);
+          const sideOffset = L / 2 + maxDim * 0.20;
+
+          // 3. Altura de Suelo (A la izquierda, tal como lo dibujaste)
+          if (WH > 0) {
+            adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(-sideOffset, 0, 0), new THREE.Vector3(-sideOffset, WH, 0), 0xd97706));
+            const spriteWH = createAdminTextSprite(`Suelo: ${WH.toFixed(1)} m`, '#ffffff', maxDim);
+            spriteWH.position.set(-sideOffset, WH / 2, 0);
+            adminDimensionGroup.add(spriteWH);
+          }
+
+          // 4. Cumbrera / Flecha / Desnivel (A la derecha, tal como lo dibujaste)
+          if (roofType !== 'plana') {
+            adminDimensionGroup.add(createAdminDimensionLine(new THREE.Vector3(sideOffset, WH, 0), new THREE.Vector3(sideOffset, WH + H, 0), 0x18181b));
+            const labelName = roofType === 'domo' ? 'Flecha' : (roofType === 'dos_caidas' ? 'Cumbrera' : 'Desnivel');
+            const spriteH = createAdminTextSprite(`${labelName}: ${H.toFixed(1)} m`, '#ffffff', maxDim);
+            spriteH.position.set(sideOffset, WH + H / 2, 0);
+            adminDimensionGroup.add(spriteH);
+          }
+
+          // Espesor arriba
+          const spriteT = createAdminTextSprite(`Espesor: 2.5 cm`, '#ffffff', maxDim);
+          spriteT.position.set(0, topRoofY + maxDim * 0.08, 0);
+          adminDimensionGroup.add(spriteT);
+
+          // Zoom inteligente frontal adaptable al tamaño del techo
+          const zoomFront = Math.max(1.2, maxDim * 0.045);
+          adminCamera.position.set(0, WH + H * 0.5, L * zoomFront);
+          adminCamera.lookAt(0, WH + H * 0.4, 0);
+        }
+        adminCamera.updateProjectionMatrix();
+      }
+
+      // CAPTURAS TÉCNICAS EXCLUSIVAS PARA EL PDF CON COTAS 3D LIMPIAS
       if (adminScene && adminRenderer && adminCamera) {
         const originalBg = adminScene.background;
         const originalPos = adminCamera.position.clone();
@@ -1465,41 +1590,29 @@ let pdfResolver = null;
           if (child instanceof THREE.LineSegments) {
             lineMaterialsToRestore.push({ mat: child.material, oldColor: child.material.color.getHex() });
             child.material.color.setHex(0x000000);
-            child.material.linewidth = 3;
+            child.material.linewidth = 2;
           }
         });
 
-        const L = activeModalItem.length || 40;
-        const W = activeModalItem.width || 20;
-        const H = activeModalItem.roofHeight || 5;
-        const WH = activeModalItem.workHeight || 0;
-        const maxDim = Math.max(L, W);
         const canvas = document.querySelector('#admin-canvas-container canvas');
 
-        // 1. CAPTURAR VISTA DE PLANTA (SUPERIOR)
-        adminCamera.position.set(0, maxDim * 1.3, 0.001);
-        adminCamera.lookAt(0, WH / 2, 0);
-        if (adminControls) adminControls.target.set(0, WH / 2, 0);
+        // 1. CAPTURAR VISTA SUPERIOR CON COTAS 3D EXTERNAS
+        buildPdfCleanScene('top');
         adminRenderer.render(adminScene, adminCamera);
         if (canvas) {
-          document.getElementById('pdfTopViewImg').src = canvas.toDataURL('image/png');
+          const topImg = document.getElementById('pdfTopViewImg');
+          if (topImg) topImg.src = canvas.toDataURL('image/png');
         }
 
-        // 2. CAPTURAR ELEVACIÓN FRONTAL
-        const totalHeight = WH + H;
-        const frontDistance = Math.max(L * 1.0, totalHeight * 1.6);
-        const targetY = WH + (H / 2);
-
-        adminCamera.position.set(0, targetY, frontDistance);
-        adminCamera.lookAt(0, targetY, 0);
-        if (adminControls) adminControls.target.set(0, targetY, 0);
-        
+        // 2. CAPTURAR ELEVACIÓN FRONTAL CON COTAS 3D EXTERNAS
+        buildPdfCleanScene('front');
         adminRenderer.render(adminScene, adminCamera);
         if (canvas) {
-          document.getElementById('pdfFrontViewImg').src = canvas.toDataURL('image/png');
+          const frontImg = document.getElementById('pdfFrontViewImg');
+          if (frontImg) frontImg.src = canvas.toDataURL('image/png');
         }
 
-        // Restaurar estado original
+        // RESTAURAR ESTADO ORIGINAL DEL VISOR INTERACTIVO DEL MODAL
         if (gridHelperObj) {
           gridHelperObj.material.color.setHex(0xf59e0b);
           gridHelperObj.material.opacity = 1.0;
@@ -1511,19 +1624,21 @@ let pdfResolver = null;
         adminScene.background = originalBg;
         adminCamera.position.copy(originalPos);
         if (adminControls) adminControls.target.copy(originalTarget);
-        adminRenderer.render(adminScene, adminCamera);
+        
+        // Volver a cargar el modelo interactivo original del modal intacto
+        buildAdmin3DModel(activeModalItem);
       }
 
-      // Mostrar plantilla temporalmente e imprimir
       const template = document.getElementById('pdfTemplate');
-      template.style.display = 'flex';
-
-      setTimeout(() => {
-        window.print();
+      if (template) {
+        template.style.display = 'flex';
         setTimeout(() => {
-          template.style.display = 'none';
-        }, 500);
-      }, 400);
+          window.print();
+          setTimeout(() => {
+            template.style.display = 'none';
+          }, 500);
+        }, 400);
+      }
 
       if (pdfResolver) pdfResolver(true);
     };
@@ -1618,16 +1733,44 @@ let pdfResolver = null;
         </div>
       </div>
 
-      <!-- Vistas Múltiples Grandes Estilo Plano Arquitectónico -->
+      <!-- Vistas Múltiples con Cuadros Negros y Texto Real del Cliente -->
       <div style="display: flex; flex-direction: column; gap: 12px;">
-        <div style="border: 1px solid #e4e4e7; border-radius: 10px; overflow: hidden; background: #ffffff; padding: 10px; text-align: center;">
+        
+        <!-- VISTA SUPERIOR -->
+        <div style="border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; padding: 10px; text-align: center; position: relative;">
           <span style="font-size: 9px; color: #71717a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 6px;">Vista de Planta (Superior)</span>
-          <img id="pdfTopViewImg" src="" alt="Vista Superior" style="width: 100%; height: 230px; object-fit: contain; border-radius: 6px; background: #ffffff;">
+          <img id="pdfTopViewImg" src="" alt="Vista Superior" style="width: 100%; height: 200px; object-fit: contain; border-radius: 6px; background: #ffffff; display: block;">
+          
+          <!-- Cuadros negros con texto tipográfico real y nítido -->
+          <div style="display: flex; justify-content: center; gap: 15px; margin-top: 8px;">
+            <div style="background: #18181b; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 10px; font-weight: 700;">
+              Largo: <span id="pdfTextLargo">--</span>
+            </div>
+            <div style="background: #18181b; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 10px; font-weight: 700;">
+              Ancho: <span id="pdfTextAncho">--</span>
+            </div>
+          </div>
         </div>
-        <div style="border: 1px solid #e4e4e7; border-radius: 10px; overflow: hidden; background: #ffffff; padding: 10px; text-align: center;">
+
+        <!-- ELEVACIÓN FRONTAL -->
+        <div style="border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; padding: 10px; text-align: center; position: relative;">
           <span style="font-size: 9px; color: #71717a; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 6px;">Elevación Frontal</span>
-          <img id="pdfFrontViewImg" src="" alt="Vista Frontal" style="width: 100%; height: 230px; object-fit: contain; border-radius: 6px; background: #ffffff;">
+          <img id="pdfFrontViewImg" src="" alt="Vista Frontal" style="width: 100%; height: 200px; object-fit: contain; border-radius: 6px; background: #ffffff; display: block;">
+          
+          <!-- Cuadros negros con texto tipográfico real y nítido -->
+          <div style="display: flex; justify-content: center; gap: 15px; margin-top: 8px;">
+            <div style="background: #18181b; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 10px; font-weight: 700;">
+              Suelo: <span id="pdfTextSuelo">--</span>
+            </div>
+            <div style="background: #18181b; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 10px; font-weight: 700;">
+              <span id="pdfTextAltTitle">Cumbrera</span>: <span id="pdfTextAlt">--</span>
+            </div>
+            <div style="background: #18181b; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 10px; font-weight: 700;">
+              Espesor: 2.5 cm
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
 
